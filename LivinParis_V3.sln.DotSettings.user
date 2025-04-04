@@ -1,5 +1,10 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a5e6f2ee_002Dd598_002D47d7_002Da745_002Ded2a436b8b3d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GrapheTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=5b4c5fda_002D7dcd_002D496a_002Dbf67_002D76911c87249d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="PreparerPlatTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.PreparerPlatTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a5e6f2ee_002Dd598_002D47d7_002Da745_002Ded2a436b8b3d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GrapheTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.GrapheTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.ComposeParTests&lt;/TestId&gt;&#xD;
@@ -13,6 +18,21 @@
     &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.RecetteTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.RegimeAlimentaireTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.TypePlatTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.UtilisateurTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=de4bbd69_002D4a98_002D4d99_002D8479_002D776a5eaba4b4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Ajouter_CréeUneNouvelleCommande" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.GrapheTests.Ajouter_CréeUneNouvelleCommande&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.ComposeParTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.ConvientATests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.ElementCommandeTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.IngredientTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.ListeStationsMetroTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.PlatProposeTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.PreparerPlatTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.RecetteTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.RegimeAlimentaireTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::D1349272-5DD8-456D-A09B-F6C3886C50BD::net8.0::TestProject1.UtilisateurTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

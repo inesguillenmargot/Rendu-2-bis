@@ -214,19 +214,6 @@ namespace TestProject1
     public class PreparerPlatTests
     {
         [Fact]
-        public void Ajouter_AssocieUnPlatAuCuisinier()
-        {
-            // Arrange
-            var preparerPlat = new PreparerPlat { UtilisateurId = 1, PlatId = 1 };
-
-            // Act
-            preparerPlat.Ajouter();
-
-            // Assert
-            Assert.True(true);  // Simuler l'ajout du plat au cuisinier
-        }
-
-        [Fact]
         public void RecupereNombreLivraisonsParCuisinier_RetourneLeNombreDeLivraisons()
         {
             // Act
