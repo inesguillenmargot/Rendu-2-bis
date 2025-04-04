@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinParis_V3", "LivinParis_V3\LivinParis_V3.csproj", "{97F28834-089A-4324-8522-989C970A7DD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "TestProject1\TestProject1.csproj", "{D1349272-5DD8-456D-A09B-F6C3886C50BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graph", "Graph\Graph.csproj", "{08D30803-71C9-49E6-9BBC-781B8D0EB1D7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{97F28834-089A-4324-8522-989C970A7DD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97F28834-089A-4324-8522-989C970A7DD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97F28834-089A-4324-8522-989C970A7DD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97F28834-089A-4324-8522-989C970A7DD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1349272-5DD8-456D-A09B-F6C3886C50BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1349272-5DD8-456D-A09B-F6C3886C50BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1349272-5DD8-456D-A09B-F6C3886C50BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1349272-5DD8-456D-A09B-F6C3886C50BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08D30803-71C9-49E6-9BBC-781B8D0EB1D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08D30803-71C9-49E6-9BBC-781B8D0EB1D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08D30803-71C9-49E6-9BBC-781B8D0EB1D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08D30803-71C9-49E6-9BBC-781B8D0EB1D7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
