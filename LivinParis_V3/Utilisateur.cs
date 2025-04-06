@@ -25,6 +25,11 @@ public class Utilisateur
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
 
+    /// <summary>
+    /// Méthode qui ne prend rien en paramètres
+    /// Méthode qui permet d'ajouter un utilisateur à la bse de données
+    /// </summary>
+    /// <returns></returns>
     public int Ajouter()
     {
         using var conn = new MySqlConnection(connectionString);
@@ -51,7 +56,9 @@ public class Utilisateur
         conn.Open();
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
+    
     /// <summary>
+    /// Méthode qui prend en paramètres 3 booléens et en fonction de leur valeur va récupérer une liste de clients selon ces critères
     /// si parNom = false alors pas trié par nom mais si parRue = vraie, trié par rue. Cela permet de pouvoir trier simultanément par rue, par nom et par montant
     /// </summary>
     /// <param name="parNom"></param>
@@ -99,6 +106,14 @@ public class Utilisateur
         }
         return clients;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur
+    /// Méthode qui permet de récupérer le nom de l'utilisateur en fonction de son id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static Utilisateur RecupererParId(int id)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -134,6 +149,12 @@ public class Utilisateur
         }
         throw new Exception("Utilisateur non trouvé.");
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur
+    /// Méthode qui permet de supprimer l'utilisateur grâce à son id
+    /// </summary>
+    /// <param name="utilisateurId"></param>
     public static void SupprimerParId(int utilisateurId)
     {
         using var conn = new MySqlConnection(connectionString);

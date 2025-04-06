@@ -11,6 +11,9 @@ public class PreparerPlat
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
 
+    /// <summary>
+    /// Méthode qui ne prend rien en paramètres
+    /// </summary>
     public void Ajouter()
     {
         using var conn = new MySqlConnection(connectionString);
@@ -59,6 +62,8 @@ public class PreparerPlat
         return (0, 0); // Aucun cuisinier trouvé
     }
     /// <summary>
+    /// Méthode qui prend en paramètres l'id du cuisinier, la dte de début et la date de fin (remplie par l'utilisateur)
+    /// Méthode qui permet de récupérer une liste des cliens servis par un cuisinier sur une période donnée
     /// Si juste RecupereTousLesClientsServies(cuisinierId) alors ça prend depuis l'inscription de celui-ci)
     /// </summary>
     /// <param name="cuisinierId"></param>
@@ -103,6 +108,13 @@ public class PreparerPlat
         }
         return clients;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id du cuisinier
+    /// Méthode qui permet de récupérer pour un cuisinier les plats qu'il a réalisé et à quelle fréquence
+    /// </summary>
+    /// <param name="cuisinierId"></param>
+    /// <returns></returns>
     public static Dictionary<PlatPropose, int> RecupereLesPlatsParFrequence(int cuisinierId)
     {
         var resultats = new Dictionary<PlatPropose, int>();

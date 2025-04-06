@@ -14,6 +14,15 @@ public class Commande
     public int UtilisateurId { get; set; }
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id du client, le prix total de la commande et le statut qui doit être à : payée
+    /// Méthode permettant d'ajouter une commande à la base de données
+    /// </summary>
+    /// <param name="clientId"></param>
+    /// <param name="prixTotal"></param>
+    /// <param name="statut"></param>
+    /// <returns></returns>
     public static int Ajouter(int clientId, decimal prixTotal, string statut = "payée")
     {
         using var conn = new MySqlConnection(connectionString);
@@ -27,6 +36,16 @@ public class Commande
         conn.Open();
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la commande, l'id du plat, la date de livraison, la station de métro ainsi que la quantité de plat souhaitée
+    /// Méthode qui permet d'ajouter à la base de données un élément de commande (différents pour chaque plat)
+    /// </summary>
+    /// <param name="commandeId"></param>
+    /// <param name="platId"></param>
+    /// <param name="dateLivraison"></param>
+    /// <param name="stationMetro"></param>
+    /// <param name="quantite"></param>
     public static void AjouterPlat(int commandeId, int platId, DateTime dateLivraison, string stationMetro, int quantite)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -45,6 +64,13 @@ public class Commande
         conn.Open();
         cmd.ExecuteNonQuery();
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur
+    /// Méthode qui permet de retourner une liste des commandes faites par un client
+    /// </summary>
+    /// <param name="utilisateurId"></param>
+    /// <returns></returns>
     public static List<Commande> RecupereCommandesParClient(int utilisateurId)
     {
         var commandes = new List<Commande>();
@@ -74,6 +100,14 @@ public class Commande
         }
         return commandes;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres deux dates (une période)
+    /// Méthode qui retourne une liste de de toutes les commandes passées entre un certaine période
+    /// </summary>
+    /// <param name="dateDebut"></param>
+    /// <param name="dateFin"></param>
+    /// <returns></returns>
     public static List<Commande> RecupereToutesLesCommandesParPeriode(DateTime dateDebut, DateTime dateFin)
     {
         var commandes = new List<Commande>();
@@ -102,6 +136,13 @@ public class Commande
         }
         return commandes;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur
+    /// Méthode qui permet de retourner la moyenne du prix des commandes fites par un client
+    /// </summary>
+    /// <param name="utilisateurId"></param>
+    /// <returns></returns>
     public static decimal CalculerMoyennePrixParClient(int utilisateurId)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -114,6 +155,14 @@ public class Commande
         var result = cmd.ExecuteScalar();
         return result != null ? Convert.ToDecimal(result) : 0;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur et la nationalité des plats commandés
+    /// Méthode qui permet de retourner une liste des commandes faites par un client selon la nationalité des plats commandés
+    /// </summary>
+    /// <param name="utilisateurId"></param>
+    /// <param name="nationalite"></param>
+    /// <returns></returns>
     public static List<Commande> RecupererCommandesParClientEtNationalite(int utilisateurId, string nationalite)
     {
         var commandes = new List<Commande>();
@@ -142,6 +191,13 @@ public class Commande
         }
         return commandes;
     }
+   
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la commande
+    /// Méthode qui permet de retourner la liste des plats d'une commande
+    /// </summary>
+    /// <param name="commandeId"></param>
+    /// <returns></returns>
     public static List<(PlatPropose Plat, DateTime DateLivraison, string StationMetro)> RecupererPlatsParCommande(int commandeId)
     {
         var liste = new List<(PlatPropose, DateTime, string)>();
@@ -170,6 +226,13 @@ public class Commande
         }
         return liste;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur(ici client)
+    /// Méthode qui permet de retourner la moyenne des notes attribuées aux cusiniers par le client
+    /// </summary>
+    /// <param name="utilisateurId"></param>
+    /// <returns></returns>
     public static decimal CalculerMoyenneNoteClient(int utilisateurId)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -182,6 +245,13 @@ public class Commande
         var result = cmd.ExecuteScalar();
         return result != null ? Convert.ToDecimal(result) : 0;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur (ici cuisinier)
+    /// Méthode qui permet de retourner la moyenne des notes attribuées aux clients par le cuisinier
+    /// </summary>
+    /// <param name="utilisateurId"></param>
+    /// <returns></returns>
     public static decimal CalculerMoyenneNoteCuisinier(int utilisateurId)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -194,6 +264,14 @@ public class Commande
         var result = cmd.ExecuteScalar();
         return result != null ? Convert.ToDecimal(result) : 0;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la commande, l'avis du client et la note du client
+    /// Méthode qui permet de mettre à jour dans la base de données l'avis et la note donnée par le client au cuisinier
+    /// </summary>
+    /// <param name="commandeId"></param>
+    /// <param name="avisClient"></param>
+    /// <param name="noteClient"></param>
     public static void MettreAJourAvisEtNote(int commandeId, string avisClient, decimal noteClient)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -207,6 +285,13 @@ public class Commande
         conn.Open();
         cmd.ExecuteNonQuery();
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la commande et le nouveau statut de celle-ci
+    /// Méthode qui permet de mettre à jour dans la base de données le statut de la commande à payée mais non livrée
+    /// </summary>
+    /// <param name="commandeId"></param>
+    /// <param name="nouveauStatut"></param>
     public static void MettreAJourStatutCommande(int commandeId, string nouveauStatut)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -219,6 +304,13 @@ public class Commande
         conn.Open();
         cmd.ExecuteNonQuery();
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la commande et la note que le cuisinier met au client
+    /// Méthode qui permet de mettre à jour dans la base de données la note que le cuisinier attribue aux clients qu'il sert
+    /// </summary>
+    /// <param name="commandeId"></param>
+    /// <param name="noteCuisinier"></param>
     public static void MettreAJourNoteCuisinier(int commandeId, decimal noteCuisinier)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -231,36 +323,15 @@ public class Commande
         conn.Open();
         cmd.ExecuteNonQuery();
     }
-    public static List<Commande> RecupereCommandesParCuisinierEtStatut(int cuisinierId, string statut)
-    {
-        var commandes = new List<Commande>();
-
-        using var conn = new MySqlConnection(connectionString);
-        string query = @"SELECT c.* FROM Commande c JOIN ElementCommande ec ON c.commande_id = ec.commande_id JOIN PlatPropose p ON ec.plat_id = p.plat_id JOIN PreparerPlat pp ON p.plat_id = pp.plat_id WHERE pp.utilisateur_id = @CuisinierId AND c.commande_statut = @Statut";
-
-        using var cmd = new MySqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
-        cmd.Parameters.AddWithValue("@Statut", statut);
-
-        conn.Open();
-
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            commandes.Add(new Commande
-            {
-                CommandeId = reader.GetInt32("commande_id"),
-                PrixTotal = reader.GetDecimal("commande_prixtotal"),
-                Statut = reader.GetString("commande_statut"),
-                AvisClient = reader.IsDBNull(reader.GetOrdinal("commande_avisClient")) ? string.Empty : reader.GetString("commande_avisClient"),
-                NoteClient = reader.IsDBNull(reader.GetOrdinal("commande_noteclient")) ? 0 : reader.GetDecimal("commande_noteclient"),
-                NoteCuisinier = reader.IsDBNull(reader.GetOrdinal("commande_notecuisinier")) ? 0 : reader.GetDecimal("commande_notecuisinier"),
-                UtilisateurId = reader.GetInt32("utilisateur_id")
-            });
-        }
-
-        return commandes;
-    }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur(cuisinier), la statut de la commande et la date de celle-ci
+    /// Méthode qui permet de retourner une liste des commandes pour une cuisinier en fonction du statut de celles-ci et de leur date
+    /// </summary>
+    /// <param name="cuisinierId"></param>
+    /// <param name="statut"></param>
+    /// <param name="date"></param>
+    /// <returns></returns>
     public static List<Commande> RecupereCommandesParCuisinierEtStatutEtDate(int cuisinierId, string statut, DateTime date)
     {
         var commandes = new List<Commande>();
@@ -292,19 +363,11 @@ public class Commande
 
         return commandes;
     }
-    public static void MettreAJourHeureLancementLivraison(int commandeId, DateTime heureDeDebut)
-    {
-        using var conn = new MySqlConnection(connectionString);
-        string query = @"UPDATE Commande SET commande_heure_lancement = @HeureLancement WHERE commande_id = @CommandeId";
-
-        using var cmd = new MySqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@HeureLancement", heureDeDebut);
-        cmd.Parameters.AddWithValue("@CommandeId", commandeId);
-
-        conn.Open();
-        cmd.ExecuteNonQuery();
-    }
-
+    
+    /// <summary>
+    /// Méthode qui ne prend pas de paramètres
+    /// Méthode qui permet de mettre à jour dans la base de données le statut de la commande à Livrée si tous les éléments de commande de cette commande sont mis au statut livrée
+    /// </summary>
     public static void MettreAJourStatutCommande()
     {
         using var conn = new MySqlConnection(connectionString);

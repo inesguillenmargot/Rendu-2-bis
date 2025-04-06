@@ -63,6 +63,12 @@ public class Nationalite
         }
         return nationalite;
     }
+    
+    /// <summary>
+    /// Méthode qui permet de permet de vérifier si une nationalité existe et si elle n'existe pas de la rajouter dans la base de données
+    /// </summary>
+    /// <param name="nom"></param>
+    /// <returns></returns>
     public static int AjouteNationaliteSiNexistePas(string nom)
     {
         using var conn = new MySqlConnection(connectionString);

@@ -12,7 +12,10 @@ public class ListeStationsMetro
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
     
-    // Récupère toutes les stations
+    /// <summary>
+    /// Méthode qui récupère toutes les stations de métro
+    /// </summary>
+    /// <returns></returns>
     public static List<ListeStationsMetro> RecupererToutesStationsMetro()
     {
         var stations = new List<ListeStationsMetro>();
@@ -35,8 +38,7 @@ public class ListeStationsMetro
 
         return stations;
     }
-
-    // Méthode pour récupérer une station par son ID
+    
     public static ListeStationsMetro RecupererStationsMetroParId(int id)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -59,7 +61,11 @@ public class ListeStationsMetro
         throw new Exception("Station de métro non trouvée.");
     }
     
-    //Méthode qui vérifie si une station (donnée par l'utilisateur - cuisinier ou client) existe
+    /// <summary>
+    /// Méthode qui vérifie si une station (donnée par l'utilisateur - cuisinier ou client) existe
+    /// </summary>
+    /// <param name="nom"></param>
+    /// <returns></returns>
     public static bool VérifierExistenceStationsMetroParNom(string nom)
     {
         bool exists = false;
@@ -92,6 +98,11 @@ public class ListeStationsMetro
         }
         return exists;
     }
+    
+    /// <summary>
+    /// Méthode qui permet de proposer le nom d'une station de métro existente si la station de métro rentrée par l'utilisateur se prononce de la même manière qu'une station existente
+    /// </summary>
+    /// <param name="nom"></param>
     public static void ProposerStationSiNonExistante(ref string nom)
     {
         bool exists = VérifierExistenceStationsMetroParNom(nom);

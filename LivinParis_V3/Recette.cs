@@ -15,6 +15,11 @@ public class Recette
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
 
+    /// <summary>
+    /// Méthode qui ne prend rien en paramètres
+    /// Méthode qui permet d'ajouter une nouvelle recette dans la base de données
+    /// </summary>
+    /// <returns></returns>
     public int Ajouter()
     {
         using var conn = new MySqlConnection(connectionString);
@@ -56,6 +61,12 @@ public class Recette
         }
         return recetteIdTemporaire;
     }
+    
+    /// <summary>
+    /// Méthode qui ne prend rien en paramètres
+    /// Méthode qui permet de retourner la liste de toutes les recettes déjà présentes dans la base de données
+    /// </summary>
+    /// <returns></returns>
     public static List<Recette> RecupereListeToutesRecettes()
     {
         var recettes = new List<Recette>();

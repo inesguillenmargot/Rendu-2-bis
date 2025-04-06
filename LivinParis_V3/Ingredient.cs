@@ -9,6 +9,12 @@ public class Ingredient
     public string Nom { get; set; } = string.Empty;
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
+
+    /// <summary>
+    /// Méthode qui prend en paramètres le nom de l'ingrédient
+    /// Méthode qui permet d'ajouter à la base de données l'ingrédient si celui-ci n'existe pas déjà (la vérification est faite)
+    /// </summary>
+    /// <param name="nom"></param>
     public static void AjouterSiNexistePas(string nom)
     {
         using var conn = new MySqlConnection(connectionString);

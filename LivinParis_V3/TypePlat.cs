@@ -11,6 +11,11 @@ public class TypePlat
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
 
+    /// <summary>
+    /// Méthode qui ne prend rien en paramètres
+    /// Méthode qui récupère tous les types de plats et qui les retourne sous forme de liste
+    /// </summary>
+    /// <returns></returns>
     public static List<TypePlat> LireTous()
     {
         var liste = new List<TypePlat>();
@@ -30,6 +35,12 @@ public class TypePlat
         return liste;
     }
 
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id du plat
+    /// Méthode qui permet de retourner le nom du plat en fonction de son id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public static string RecupereNomPlatParId(int id)
     {
         string typePlat = string.Empty;

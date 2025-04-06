@@ -24,6 +24,13 @@ public class ConvientA
         cmd.ExecuteNonQuery();
     }
 
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la recette
+    /// Méthode qui permet de retourner une liste des régimes alimentaires qui sont compatibles avec cette recette
+    /// </summary>
+    /// <param name="recetteId"></param>
+    /// <returns></returns>
     public static List<RegimeAlimentaire> RecupereRegimesParRecette(int recetteId)
     {
         var liste = new List<RegimeAlimentaire>();

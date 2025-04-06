@@ -37,6 +37,13 @@ public class ComposePar
         conn.Open();
         cmd.ExecuteNonQuery();
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la recette
+    /// Méthode qui permet de retourner une liste des ingrédients qu'une recette contient
+    /// </summary>
+    /// <param name="recetteId"></param>
+    /// <returns></returns>
     public static List<Ingredient> RecupereIngredientsParRecette(int recetteId)
     {
         var liste = new List<Ingredient>();

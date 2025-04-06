@@ -17,6 +17,10 @@ public class PlatPropose
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
 
+    /// <summary>
+    /// Méthode permettant d'ajouter un plat à la base de données
+    /// </summary>
+    /// <returns></returns>
     public int Ajouter()
     {
         using var conn = new MySqlConnection(connectionString);
@@ -34,6 +38,11 @@ public class PlatPropose
         conn.Open();
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
+    
+    /// <summary>
+    /// Méthode qui permet de récupérer la liste de tous les plats disponibles 
+    /// </summary>
+    /// <returns></returns>
     public static List<PlatPropose> RecupererListeTousPlats()
     {
         var plats = new List<PlatPropose>();
@@ -62,6 +71,7 @@ public class PlatPropose
         }
         return plats;
     }
+    
     public static PlatPropose RecupererPlatParId(int id)
     {
         PlatPropose plat = new PlatPropose();
@@ -120,6 +130,12 @@ public class PlatPropose
         }
         return platsDisponibles;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id du cuisinier (int) et qui permet de retourner la liste des plats qu'un cuisinier propose
+    /// </summary>
+    /// <param name="cuisinierId"></param>
+    /// <returns></returns>
     public static List<PlatPropose> RecupererPlatsParCuisinier(int cuisinierId)
     {
         var plats = new List<PlatPropose>();
@@ -150,6 +166,12 @@ public class PlatPropose
         }
         return plats;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id du cuisinier (int) et qui permet de retourner le plat du jour qu'un cuisinier propose
+    /// </summary>
+    /// <param name="cuisinierId"></param>
+    /// <returns></returns>
     public static PlatPropose? RecuperePlatDuJour(int cuisinierId)
     {
         using var conn = new MySqlConnection(connectionString);

@@ -1388,114 +1388,10 @@ public class Program
         elementAtraiter.MettreAJourLivraison();
 
         Console.WriteLine($"\n✅ Livraison de l’élément #{elementAtraiter.CommandeDetailId} lancée à {elementAtraiter.DateDebutLivraison:T} et arrive dans {elementAtraiter.DureeLivraison}.");
+        Console.WriteLine("Merci d'aller noter le client !");
 
         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
         Console.ReadKey();
-    }
-    public static Dictionary<string, double> Dijkstra(string source, Dictionary<string, List<(string Destination, double Poids)>> listeAdjacence)
-    {
-        var distances = new Dictionary<string, double>(); // Stocke la distance minimale
-        var parents = new Dictionary<string, string>();   // Pour reconstruire le chemin
-        var priorityQueue = new SortedDictionary<double, string>(); // File de priorité
-
-        // Initialisation
-        foreach (var noeud in listeAdjacence.Keys)
-        {
-            distances[noeud] = double.MaxValue; // Distance infinie
-            parents[noeud] = null;              // Pas de parent initialement
-        }
-        distances[source] = 0;  // La distance de la source à elle-même est 0
-        priorityQueue[0] = source;
-
-        while (priorityQueue.Count > 0)
-        {
-            var currentNode = priorityQueue.First().Value;
-            priorityQueue.Remove(priorityQueue.First().Key);
-
-            // Vérifier si la station existe dans le dictionnaire avant d'accéder à ses voisins
-            if (listeAdjacence.ContainsKey(currentNode))
-            {
-                foreach (var voisin in listeAdjacence[currentNode])
-                {
-                    double newDist = distances[currentNode] + voisin.Poids;
-                    if (newDist < distances[voisin.Destination])
-                    {
-                        distances[voisin.Destination] = newDist;
-                        parents[voisin.Destination] = currentNode;
-
-                        // Ajouter le voisin à la file de priorité avec la nouvelle distance
-                        if (!priorityQueue.ContainsValue(voisin.Destination))
-                        {
-                            priorityQueue[newDist] = voisin.Destination;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine($"❌ La station {currentNode} n'existe pas dans le graphe.");
-            }
-        }
-
-        return distances; // Retourne les distances minimales
-    }
-    
-    // Méthode pour récupérer toutes les commandes depuis la base de données
-    public static List<Commande> RecupererToutesLesCommandes()
-    {
-        List<Commande> commandes = new List<Commande>();
-
-        // Connexion à la base de données MySQL
-        string connectionString = "Server=localhost;Database=LivinParis;User ID=root;Password=;"; // Remplace avec tes infos de connexion
-
-        using (var connection = new MySqlConnection(connectionString))
-        {
-            connection.Open();
-
-            string query = "SELECT * FROM Commande WHERE Statut != 'livrée'"; // Filtrer pour ne récupérer que les commandes non livrées
-            using (var cmd = new MySqlCommand(query, connection))
-            {
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        var commande = new Commande
-                        {
-                            CommandeId = reader.GetInt32("CommandeId"),
-                            PrixTotal = reader.GetDecimal("PrixTotal"),
-                            Statut = reader.GetString("Statut"),
-                            AvisClient = reader.GetString("AvisClient"),
-                            NoteClient = reader.GetDecimal("NoteClient"),
-                            NoteCuisinier = reader.GetDecimal("NoteCuisinier"),
-                            UtilisateurId = reader.GetInt32("UtilisateurId")
-                        };
-                        commandes.Add(commande);
-                    }
-                }
-            }
-        }
-
-        return commandes;
-    }
-    
-    // Méthode pour mettre à jour le statut d'une commande à "Livrée"
-    public static void MettreAJourStatutCommande(int commandeId, string nouveauStatut)
-    {
-        string connectionString = "Server=localhost;Database=LivinParis;User ID=root;Password=;"; // Remplace avec tes infos de connexion
-
-        using (var connection = new MySqlConnection(connectionString))
-        {
-            connection.Open();
-
-            string query = "UPDATE Commande SET Statut = @Statut WHERE CommandeId = @CommandeId";
-            using (var cmd = new MySqlCommand(query, connection))
-            {
-                cmd.Parameters.AddWithValue("@Statut", nouveauStatut);
-                cmd.Parameters.AddWithValue("@CommandeId", commandeId);
-
-                cmd.ExecuteNonQuery();
-            }
-        }
     }
     
     static void NoterClient(int cuisinierId)
@@ -1544,35 +1440,5 @@ public class Program
 
         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
         Console.ReadKey();
-    }
-    
-    public static void MettreAJourNoteCuisinier(int commandeId, decimal noteCuisinier)
-    {
-        using var conn = new MySqlConnection(connectionString);
-        string query = @"UPDATE Commande SET commande_notecuisinier = @NoteCuisinier WHERE commande_id = @CommandeId";
-
-        using var cmd = new MySqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@NoteCuisinier", noteCuisinier);
-        cmd.Parameters.AddWithValue("@CommandeId", commandeId);
-
-        conn.Open();
-        cmd.ExecuteNonQuery();
-    }
-    
-    public static List<Commande> ToutesLesCommandes()
-    {
-        // Simuler la récupération des commandes depuis une base de données ou une autre source de données.
-        // Remplace cette partie par l'accès à ta base de données ou à ta collection de commandes.
-
-        List<Commande> commandes = new List<Commande>();
-
-        // Exemple de commandes (à remplacer par des données réelles)
-        commandes.Add(new Commande { CommandeId = 1, UtilisateurId = 9, Statut = "payée mais non livrée" });
-        commandes.Add(new Commande { CommandeId = 2, UtilisateurId = 15, Statut = "livrée" });
-        commandes.Add(new Commande { CommandeId = 3, UtilisateurId = 10, Statut = "payée mais non livrée" });
-        commandes.Add(new Commande { CommandeId = 4, UtilisateurId = 12, Statut = "en attente" });
-    
-        // Retourner la liste des commandes
-        return commandes;
     }
 }

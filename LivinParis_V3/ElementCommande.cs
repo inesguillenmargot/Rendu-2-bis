@@ -38,17 +38,13 @@ public class ElementCommande
         conn.Open();
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
-    public static void Supprimer(int id)
-    {
-        using var conn = new MySqlConnection(connectionString);
-        string query = "DELETE FROM ElementCommande WHERE commandedetail_id = @Id";
-
-        using var cmd = new MySqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@Id", id);
-
-        conn.Open();
-        cmd.ExecuteNonQuery();
-    }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la commande
+    /// Méthode qui permet de retourner une liste des éléments de commande d'une commande
+    /// </summary>
+    /// <param name="commandeId"></param>
+    /// <returns></returns>
     public static List<ElementCommande> RecupererElementCommandeParCommandeId(int commandeId)
     {
         var elementsCommande = new List<ElementCommande>();
