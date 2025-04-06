@@ -1343,16 +1343,16 @@ public class Program
         
         // Si un seul élément, le sélectionner automatiquement
         int indexSelectionne = 0;
-        if (elements.Count > 1)
-        {
+        //if (elements.Count > 1)
+        //{
             while (true)
             {
-                Console.Write("Sélectionner un élément à traiter (numéro) : ");
+                Console.Write("Sélectionner un élément à traiter (numéro de la ligne) : ");
                 string input = Console.ReadLine();
                 if (int.TryParse(input, out int selection) && selection > 0 && selection <= elements.Count)
                 {
                     indexSelectionne = selection - 1;
-                    if (elements[indexSelectionne].Statut != ElementCommande.STATUT_PAYE_NON_LIVREE)
+                    if (elements[indexSelectionne].Statut != ElementCommande.STATUT_A_TRAITER)
                     {
                         Console.WriteLine("❌ La commande n'est plus a traiter !");
                     }
@@ -1363,11 +1363,11 @@ public class Program
                 }
                 Console.WriteLine("❌ Sélection invalide. Réessayez.");
             }
-        }
+        /*}
         else
         {
             Console.WriteLine("Un seul élément trouvé. Il est sélectionné automatiquement.");
-        }
+        }*/
         
         // Élement sélectionné
         ElementCommande elementAtraiter = elements[indexSelectionne];
@@ -1404,7 +1404,7 @@ public class Program
     static void NoterClient(int cuisinierId)
     {
         // Récupérer toutes les commandes livrées par le cuisinier
-        var commandesLivrees = Commande.RecupereCommandesParCuisinierEtStatutEtDate(cuisinierId, Commande.STATUT_LIVREE,DateTime.Today);
+        var commandesLivrees = Commande.RecupereCommandesParCuisinierEtStatutEtDateSansNote(cuisinierId, Commande.STATUT_LIVREE,DateTime.Today);
 
         Console.Clear();
         Console.WriteLine("=== Noter le client ===\n");
@@ -1417,16 +1417,16 @@ public class Program
 
         for (int i = 0; i < commandesLivrees.Count; i++)
         {
-            Console.WriteLine($"{i + 1}. Commande #{commandesLivrees[i].CommandeId} | Client : {commandesLivrees[i].UtilisateurId}");
+           Console.WriteLine($"{i + 1}. Commande #{commandesLivrees[i].CommandeId} | Client : {commandesLivrees[i].UtilisateurId}");
         }
 
-        Console.Write("Sélectionner une commande à noter : ");
+        Console.Write("Sélectionner une commande à noter (numéro de la ligne) : ");
         int choix = int.Parse(Console.ReadLine() ?? "0");
 
         if (choix > 0 && choix <= commandesLivrees.Count)
         {
             int commandeId = commandesLivrees[choix - 1].CommandeId;
-            Console.Write("Donnez une note au client (1 à 5) : ");
+            Console.Write("Donnez une note au client (entre 1 à 5) : ");
             decimal noteClient = decimal.Parse(Console.ReadLine() ?? "0");
 
             if (noteClient < 1 || noteClient > 5)

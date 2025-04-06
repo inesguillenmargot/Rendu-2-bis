@@ -370,6 +370,46 @@ public class Commande
     }
     
     /// <summary>
+    /// Méthode qui prend en paramètres l'id de l'utilisateur(cuisinier), la statut de la commande et la date de celle-ci
+    /// Méthode qui permet de retourner une liste des commandes pour une cuisinier en fonction du statut de celles-ci et de leur date et du fait qu'il n'y a pas déjà de note attribué par le cuisinier
+    /// </summary>
+    /// <param name="cuisinierId"></param>
+    /// <param name="statut"></param>
+    /// <param name="date"></param>
+    /// <returns></returns>
+    public static List<Commande> RecupereCommandesParCuisinierEtStatutEtDateSansNote(int cuisinierId, string statut, DateTime date)
+    {
+        var commandes = new List<Commande>();
+
+        using var conn = new MySqlConnection(connectionString);
+        string query = @"SELECT c.* FROM Commande c JOIN ElementCommande ec ON c.commande_id = ec.commande_id JOIN PlatPropose p ON ec.plat_id = p.plat_id JOIN PreparerPlat pp ON p.plat_id = pp.plat_id WHERE pp.utilisateur_id = @CuisinierId AND c.commande_statut = @Statut AND DATE(ec.commande_date_souhaitee) = DATE(@Date) AND c.commande_notecuisinier IS NULL";
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
+        cmd.Parameters.AddWithValue("@Statut", statut);
+        cmd.Parameters.AddWithValue("@Date", date);
+
+        conn.Open();
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            commandes.Add(new Commande
+            {
+                CommandeId = reader.GetInt32("commande_id"),
+                PrixTotal = reader.GetDecimal("commande_prixtotal"),
+                Statut = reader.GetString("commande_statut"),
+                AvisClient = reader.IsDBNull(reader.GetOrdinal("commande_avisClient")) ? string.Empty : reader.GetString("commande_avisClient"),
+                NoteClient = reader.IsDBNull(reader.GetOrdinal("commande_noteclient")) ? 0 : reader.GetDecimal("commande_noteclient"),
+                NoteCuisinier = reader.IsDBNull(reader.GetOrdinal("commande_notecuisinier")) ? 0 : reader.GetDecimal("commande_notecuisinier"),
+                UtilisateurId = reader.GetInt32("utilisateur_id")
+            });
+        }
+
+        return commandes;
+    }
+    
+    /// <summary>
     /// Méthode qui ne prend pas de paramètres
     /// Méthode qui permet de mettre à jour dans la base de données le statut de la commande à Livrée si tous les éléments de commande de cette commande sont mis au statut livrée
     /// </summary>
