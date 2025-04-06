@@ -110,7 +110,7 @@ namespace TestProject1
                 CommandeId = 1,
                 PlatId = 1,
                 Quantite = 2,
-                Date = DateTime.Now,
+                DateSouhaitee = DateTime.Now,
                 StationMetro = "Concorde"
             };
 

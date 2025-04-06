@@ -30,12 +30,15 @@ public class Commande
     public static void AjouterPlat(int commandeId, int platId, DateTime dateLivraison, string stationMetro, int quantite)
     {
         using var conn = new MySqlConnection(connectionString);
-        string query = @"INSERT INTO ElementCommande (commande_quantite, commande_date, commande_stationmetro, commande_id, plat_id) VALUES (@Quantite, @Date, @Station, @CommandeId, @PlatId)";
+        string query = @"INSERT INTO ElementCommande (commande_quantite, commande_date_souhaitee, commande_stationmetro,commande_statut, commande_date_debut_livraison, commande_duree_livraison, commande_id, plat_id) VALUES (@Quantite, @Date, @Station,@Statut, @DateDebutLivraison, @DureeLivraison, @CommandeId, @PlatId)";
 
         using var cmd = new MySqlCommand(query, conn);
         cmd.Parameters.AddWithValue("@Quantite", quantite);
         cmd.Parameters.AddWithValue("@Date", dateLivraison);
         cmd.Parameters.AddWithValue("@Station", stationMetro);
+        cmd.Parameters.AddWithValue("@Statut", "A traiter");
+        cmd.Parameters.AddWithValue("@DateDebutLivraison", null);
+        cmd.Parameters.AddWithValue("@DureeLivraison", null);
         cmd.Parameters.AddWithValue("@CommandeId", commandeId);
         cmd.Parameters.AddWithValue("@PlatId", platId);
 
@@ -144,7 +147,7 @@ public class Commande
         var liste = new List<(PlatPropose, DateTime, string)>();
 
         using var conn = new MySqlConnection(connectionString);
-        string query = @"SELECT cc.plat_id, cc.commande_date, cc.commande_stationmetro, p.plat_nom, p.plat_prixpp FROM ElementCommande cc JOIN PlatPropose p ON p.plat_id = cc.plat_id WHERE cc.commande_id = @CommandeId";
+        string query = @"SELECT cc.plat_id, cc.commande_date_souhaitee, cc.commande_stationmetro, p.plat_nom, p.plat_prixpp FROM ElementCommande cc JOIN PlatPropose p ON p.plat_id = cc.plat_id WHERE cc.commande_id = @CommandeId";
 
         using var cmd = new MySqlCommand(query, conn);
         cmd.Parameters.AddWithValue("@CommandeId", commandeId);
@@ -160,7 +163,7 @@ public class Commande
                 PrixParPersonne = reader.GetDecimal("plat_prixpp")
             };
 
-            DateTime date = reader.GetDateTime("commande_date");
+            DateTime date = reader.GetDateTime("commande_date_souhaitee");
             string station = reader.GetString("commande_stationmetro");
 
             liste.Add((plat, date, station));
@@ -258,6 +261,37 @@ public class Commande
 
         return commandes;
     }
+    public static List<Commande> RecupereCommandesParCuisinierEtStatutEtDate(int cuisinierId, string statut, DateTime date)
+    {
+        var commandes = new List<Commande>();
+
+        using var conn = new MySqlConnection(connectionString);
+        string query = @"SELECT c.* FROM Commande c JOIN ElementCommande ec ON c.commande_id = ec.commande_id JOIN PlatPropose p ON ec.plat_id = p.plat_id JOIN PreparerPlat pp ON p.plat_id = pp.plat_id WHERE pp.utilisateur_id = @CuisinierId AND c.commande_statut = @Statut AND DATE(ec.commande_date_souhaitee) = DATE(@Date)";
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
+        cmd.Parameters.AddWithValue("@Statut", statut);
+        cmd.Parameters.AddWithValue("@Date", date);
+
+        conn.Open();
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            commandes.Add(new Commande
+            {
+                CommandeId = reader.GetInt32("commande_id"),
+                PrixTotal = reader.GetDecimal("commande_prixtotal"),
+                Statut = reader.GetString("commande_statut"),
+                AvisClient = reader.IsDBNull(reader.GetOrdinal("commande_avisClient")) ? string.Empty : reader.GetString("commande_avisClient"),
+                NoteClient = reader.IsDBNull(reader.GetOrdinal("commande_noteclient")) ? 0 : reader.GetDecimal("commande_noteclient"),
+                NoteCuisinier = reader.IsDBNull(reader.GetOrdinal("commande_notecuisinier")) ? 0 : reader.GetDecimal("commande_notecuisinier"),
+                UtilisateurId = reader.GetInt32("utilisateur_id")
+            });
+        }
+
+        return commandes;
+    }
     public static void MettreAJourHeureLancementLivraison(int commandeId, DateTime heureDeDebut)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -266,6 +300,18 @@ public class Commande
         using var cmd = new MySqlCommand(query, conn);
         cmd.Parameters.AddWithValue("@HeureLancement", heureDeDebut);
         cmd.Parameters.AddWithValue("@CommandeId", commandeId);
+
+        conn.Open();
+        cmd.ExecuteNonQuery();
+    }
+
+    public static void MettreAJourStatutCommande()
+    {
+        using var conn = new MySqlConnection(connectionString);
+        string query = @"UPDATE Commande a SET a.commande_statut = @Statut WHERE NOT EXISTS (SELECT null FROM ElementCommande b WHERE b.commande_statut<>'Livrée' AND a.commande_id=b.commande_id)";
+        
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@Statut", "Livrée");
 
         conn.Open();
         cmd.ExecuteNonQuery();

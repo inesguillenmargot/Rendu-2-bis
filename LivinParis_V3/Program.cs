@@ -409,6 +409,10 @@ public class Program
         {
             Console.Clear();
             Console.WriteLine("=== Espace Cuisinier ===\n");
+            
+            // Astuce pour mettre à jour le statut des commandes sans passer par une tache de fond
+            ElementCommande.PasserElementCommandeALivrer();
+            Commande.MettreAJourStatutCommande();
 
             for (int i = 0; i < options.Length; i++)
             {
@@ -525,7 +529,11 @@ public class Program
         {
             Console.Clear();
             Console.WriteLine("=== Espace Client ===\n");
-
+            
+            // Astuce pour mettre à jour le statut des commandes sans passer par une tache de fond
+            ElementCommande.PasserElementCommandeALivrer();
+            Commande.MettreAJourStatutCommande();
+            
             for (int i = 0; i < options.Length; i++)
             {
                 Console.Write(i == selected ? "👉 " : "   ");
@@ -1204,201 +1212,186 @@ public class Program
         Console.ReadKey();
     }
 
-static void LancerLivraison(int cuisinierId)
-{
-    // Charger le fichier Excel avec ClosedXML
-    string cheminExcel = @"C:\Users\guill\RiderProjects\LivinParis_V3\Graph\bin\Debug\net8.0\MetroParis (4).xlsx";
-    var workbook = new XLWorkbook(cheminExcel);
-    
-    // Récupérer la première feuille du fichier Excel
-    var worksheet = workbook.Worksheet(1);
+    /// <summary>
+    /// Cette méthode prend en paramètre cuisinierId.
+    /// Elle va permettre au cuisinier de lancer la livraison d'une commande avec un plat fabriqué par le cuisinier en question
+    /// </summary>
+    /// <param name="cuisinierId"></param>
+    static void LancerLivraison(int cuisinierId)
+    {
+        // Charger le fichier Excel avec ClosedXML
+        string cheminExcel = @"C:\Users\guill\RiderProjects\LivinParis_V3\Graph\bin\Debug\net8.0\MetroParis (4).xlsx";
+        var workbook = new XLWorkbook(cheminExcel);
+        
+        // Récupérer la première feuille du fichier Excel
+        var worksheet = workbook.Worksheet(1);
 
-    // Charger les données du graphe depuis le fichier Excel (ici, la station et ses liens)
-    var graphData = worksheet.RowsUsed().Skip(1)
-        .Select(row =>
-        {
-            string station = row.Cell(1).Value.ToString();
-            string lien = row.Cell(2).Value.ToString();
-            double poids = 0;
-
-            try
+        // Charger les données du graphe depuis le fichier Excel (ici, la station et ses liens)
+        var graphData = worksheet.RowsUsed().Skip(1)
+            .Select(row =>
             {
-                // Tenter de convertir la valeur en double (poids / temps de trajet)
-                poids = Convert.ToDouble(row.Cell(3).Value);
-            }
-            catch (InvalidCastException)
-            {
-                // Si la conversion échoue, on peut ignorer ou gérer autrement
-                Console.WriteLine($"Avertissement : Impossible de convertir la cellule en nombre pour la station {station}.");
-            }
+                string station = row.Cell(1).Value.ToString();
+                string lien = row.Cell(2).Value.ToString();
+                double poids = 0;
 
-            return new
-            {
-                Station = station,
-                Lien = lien,
-                Poids = poids
-            };
-        }).ToList();
-
-    // Construire la liste d'adjacence pour le graphe
-    var listeAdjacence = new Dictionary<string, List<(string Destination, double Poids)>>();
-
-    foreach (var data in graphData)
-    {
-        if (!listeAdjacence.ContainsKey(data.Station))
-        {
-            listeAdjacence[data.Station] = new List<(string, double)>();
-        }
-
-        // Ajout des voisins
-        listeAdjacence[data.Station].Add((data.Lien, data.Poids));
-    }
-
-    // Récupérer toutes les commandes non encore livrées
-    var commandesEnCours = Commande.RecupereCommandesParCuisinierEtStatut(cuisinierId, "payée mais non livrée");
-
-    Console.Clear();
-    Console.WriteLine("=== Lancer la livraison ===\n");
-
-    if (commandesEnCours.Count == 0)
-    {
-        Console.WriteLine("❌ Aucune commande à livrer.");
-        return;
-    }
-
-    // Afficher toutes les commandes disponibles
-    for (int i = 0; i < commandesEnCours.Count; i++)
-    {
-        Console.WriteLine($"{i + 1}. Commande #{commandesEnCours[i].CommandeId} | Client : {commandesEnCours[i].UtilisateurId}");
-    }
-
-    // Demander à l'utilisateur de sélectionner une commande à livrer
-    int choix;
-    while (true)
-    {
-        Console.WriteLine("=== Liste de toutes les commandes ===");
-        List<Commande> toutesLesCommandes = ToutesLesCommandes();
-        // Afficher toutes les commandes avec leur ID et leur client
-        for (int i = 0; i < toutesLesCommandes.Count; i++) // toutesLesCommandes représente la liste de toutes les commandes
-        {
-            Console.WriteLine($"{i + 1}. Commande #{toutesLesCommandes[i].CommandeId} | Client : {toutesLesCommandes[i].UtilisateurId}");
-        }
-
-        Console.Write("Sélectionner une commande à livrer (entrer le numéro de commande) : ");
-        string input = Console.ReadLine();
-
-        // Vérifier si l'entrée est un nombre et si ce nombre est dans la plage valide des indices
-        if (int.TryParse(input, out choix) && choix > 0 && choix <= toutesLesCommandes.Count)
-        {
-            // Récupérer l'ID de la commande choisie
-            int commandelId = toutesLesCommandes[choix - 1].CommandeId;
-
-            // Si l'ID est valide, sortir de la boucle
-            break;  
-        }
-        else
-        {
-            Console.WriteLine("❌ Sélection invalide. Veuillez entrer un numéro de commande valide.");
-        }
-    }
-
-
-    // Utiliser l'indice corrigé pour obtenir la commande
-    int commandeId = commandesEnCours[choix - 1].CommandeId;
-
-    // Récupérer la station de métro du cuisinier
-    string stationMetroCuisinier = Utilisateur.RecupererParId(cuisinierId).MetroProche;
-
-    // Récupérer la station de métro du client à partir des éléments de la commande
-    var elementCommande = ElementCommande.RecupererElementCommandeParCommandeId(commandeId).FirstOrDefault();
-    string stationMetroClient = elementCommande?.StationMetro ?? ""; // Si aucun élément, on retourne une chaîne vide
-
-    if (string.IsNullOrEmpty(stationMetroClient))
-    {
-        Console.WriteLine("❌ La station de métro du client n'a pas été trouvée.");
-        return;
-    }
-
-    // Exécuter l'algorithme de Dijkstra pour calculer les temps de trajet
-    var distances = Dijkstra(stationMetroCuisinier, listeAdjacence);
-
-    if (distances.ContainsKey(stationMetroClient))
-    {
-        double tempsDeTrajet = distances[stationMetroClient]; // Le temps de trajet en minutes ou en distance
-
-        // Capture l'heure de début du lancement de la livraison
-        DateTime heureDeDebut = DateTime.Now;
-
-        // Affichage de l'heure de début de la livraison
-        Console.WriteLine($"⏱ Heure de lancement : {heureDeDebut}");
-
-        // Mise à jour de l'heure de début dans la base de données pour la commande
-        Commande.MettreAJourHeureLancementLivraison(commandeId, heureDeDebut);
-
-        // Attendre que le temps de trajet soit écoulé (simulation de l'attente)
-        double tempsEcoule = (DateTime.Now - heureDeDebut).TotalMinutes;
-
-        if (tempsEcoule >= tempsDeTrajet)
-        {
-            // Mettre à jour le statut de la commande à "livrée"
-            Commande.MettreAJourStatutCommande(commandeId, "livrée");
-
-            Console.WriteLine($"✅ Livraison de la commande #{commandeId} lancée et terminée.");
-        }
-        else
-        {
-            Console.WriteLine("❌ Le temps de livraison n'est pas encore écoulé.");
-        }
-    }
-    else
-    {
-        Console.WriteLine("❌ Impossible de calculer le temps de trajet entre les stations.");
-    }
-
-    Console.WriteLine("\nAppuyez sur une touche pour continuer...");
-    Console.ReadKey();
-}
-
-// Méthode Dijkstra sans classe, directement utilisée dans la méthode LancerLivraison
-/*public static Dictionary<string, double> Dijkstra(string source, Dictionary<string, List<(string Destination, double Poids)>> listeAdjacence)
-{
-    var distances = new Dictionary<string, double>(); // Stocke la distance minimale
-    var parents = new Dictionary<string, string>();   // Pour reconstruire le chemin
-    var priorityQueue = new SortedDictionary<double, string>(); // File de priorité
-
-    // Initialisation
-    foreach (var noeud in listeAdjacence.Keys)
-    {
-        distances[noeud] = double.MaxValue; // Distance infinie
-        parents[noeud] = null;              // Pas de parent initialement
-    }
-    distances[source] = 0;  // La distance de la source à elle-même est 0
-    priorityQueue[0] = source;
-
-    while (priorityQueue.Count > 0)
-    {
-        var currentNode = priorityQueue.First().Value;
-        priorityQueue.Remove(priorityQueue.First().Key);
-
-        foreach (var voisin in listeAdjacence[currentNode])
-        {
-            double newDist = distances[currentNode] + voisin.Poids;
-            if (newDist < distances[voisin.Destination])
-            {
-                distances[voisin.Destination] = newDist;
-                parents[voisin.Destination] = currentNode;
-
-                // Ajouter le voisin à la file de priorité avec la nouvelle distance
-                if (!priorityQueue.ContainsValue(voisin.Destination))
+                try
                 {
-                    priorityQueue[newDist] = voisin.Destination;
+                    // Tenter de convertir la valeur en double (poids / temps de trajet)
+                    poids = Convert.ToDouble(row.Cell(3).Value);
+                }
+                catch (InvalidCastException)
+                {
+                    // Si la conversion échoue, on peut ignorer ou gérer autrement
+                    Console.WriteLine($"Avertissement : Impossible de convertir la cellule en nombre pour la station {station}.");
+                }
+
+                return new
+                {
+                    Station = station,
+                    Lien = lien,
+                    Poids = poids
+                };
+            }).ToList();
+
+        // Construire la liste d'adjacence pour le graphe
+        var listeAdjacence = new Dictionary<string, List<(string Destination, double Poids)>>();
+
+        foreach (var data in graphData)
+        {
+            if (!listeAdjacence.ContainsKey(data.Station))
+            {
+                listeAdjacence[data.Station] = new List<(string, double)>();
+            }
+
+            // Ajout des voisins
+            listeAdjacence[data.Station].Add((data.Lien, data.Poids));
+        }
+
+        // Récupérer toutes les commandes non encore livrées
+        var commandesEnCours = Commande.RecupereCommandesParCuisinierEtStatutEtDate(cuisinierId, "payée mais non livrée",DateTime.Today);
+
+        Console.Clear();
+        Console.WriteLine("=== Lancer la livraison ===\n");
+
+        if (commandesEnCours.Count == 0)
+        {
+            
+            Console.WriteLine("❌ Aucune commande à livrer.");
+            return;
+        }
+
+        // Afficher toutes les commandes disponibles
+        for (int i = 0; i < commandesEnCours.Count; i++)
+        {
+            Console.WriteLine($"{i + 1}. Commande #{commandesEnCours[i].CommandeId} | Client : {commandesEnCours[i].UtilisateurId}");
+        }
+
+        // Demander à l'utilisateur de sélectionner une commande à livrer
+        int choix;
+        while (true)
+        {
+            Console.Write("Sélectionner une commande à livrer (entrer le numéro de commande) : ");
+            string input = Console.ReadLine();
+            bool saisieCorrecte = false;
+
+            // Vérifier si l'entrée est un nombre
+            if (int.TryParse(input, out choix) && choix > 0)
+            {        
+                // recherche si l'id correspond à une commande existante et disponible pour livraison
+                for (int i = 0; i < commandesEnCours.Count && !saisieCorrecte; i++)
+                {
+                    if( choix == commandesEnCours[i].CommandeId)
+                    {
+                        saisieCorrecte = true;
+                    }
+                }
+
+                if (!saisieCorrecte)
+                {
+                    Console.WriteLine("❌ Sélection invalide. Veuillez entrer un numéro de commande valide.");
+                }
+                else
+                {
+                    // Si l'ID est valide, sortir de la boucle
+                    break;
                 }
             }
+            else
+            {
+                Console.WriteLine("❌ Sélection invalide. Veuillez entrer un numéro de commande valide.");
+            }
         }
-    }
 
-    return distances; // Retourne les distances minimales
-}*/
+
+        // Numéro de commande valide
+        int commandeId = choix;
+        
+        // recuperer la liste des éléments de cette commande prévus pour aujourd'hui
+        var elements = ElementCommande.RecupererElementCommandeParCommandeId(commandeId).FindAll(e => e.DateSouhaitee.Date == DateTime.Today);
+        if (elements.Count == 0)
+        {
+            Console.WriteLine("❌ Aucun élément à livrer aujourd’hui pour cette commande.");
+            return;
+        }
+        
+        // Affichage des éléments
+        Console.WriteLine("\nÉléments de la commande pour aujourd’hui :");
+        for (int i = 0; i < elements.Count; i++)
+        {
+            Console.WriteLine($"{i + 1}. Plat ID : {elements[i].PlatId} | Quantité : {elements[i].Quantite} | Station : {elements[i].StationMetro}");
+        }
+        
+        // Si un seul élément, le sélectionner automatiquement
+        int indexSelectionne = 0;
+        if (elements.Count > 1)
+        {
+            while (true)
+            {
+                Console.Write("Sélectionner un élément à traiter (numéro) : ");
+                string input = Console.ReadLine();
+                if (int.TryParse(input, out int selection) && selection > 0 && selection <= elements.Count)
+                {
+                    indexSelectionne = selection - 1;
+                    break;
+                }
+                Console.WriteLine("❌ Sélection invalide. Réessayez.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Un seul élément trouvé. Il est sélectionné automatiquement.");
+        }
+        
+        // Élement sélectionné
+        ElementCommande elementAtraiter = elements[indexSelectionne];
+
+        // Marquage du début de la livraison pour cet élément
+        elementAtraiter.DateDebutLivraison = DateTime.Now;
+        elementAtraiter.Statut = "En cours de livraison";
+        
+        // Récupérer la station de métro du cuisinier
+        string stationMetroCuisinier = Utilisateur.RecupererParId(cuisinierId).MetroProche;
+
+        // Récupérer la station de métro du client à partir de l'élément de la commande
+        var elementCommande = ElementCommande.RecupererElementCommandeParCommandeId(commandeId).FirstOrDefault();
+        string stationMetroClient = elementCommande?.StationMetro ?? ""; // Si aucun élément, on retourne une chaîne vide
+
+        if (string.IsNullOrEmpty(stationMetroClient))
+        {
+            Console.WriteLine("❌ La station de métro du client n'a pas été trouvée.");
+            return;
+        }
+
+        int dureeLivraison = 2; // A modifier avec la durée metro cuisinier / metro cible
+        
+        elementAtraiter.DureeLivraison = dureeLivraison;
+        elementAtraiter.MettreAJourLivraison();
+
+        Console.WriteLine($"\n✅ Livraison de l’élément #{elementAtraiter.CommandeDetailId} lancée à {elementAtraiter.DateDebutLivraison:T} et arrive dans {elementAtraiter.DureeLivraison}.");
+
+        Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+        Console.ReadKey();
+    }
     public static Dictionary<string, double> Dijkstra(string source, Dictionary<string, List<(string Destination, double Poids)>> listeAdjacence)
     {
         var distances = new Dictionary<string, double>(); // Stocke la distance minimale
@@ -1446,116 +1439,69 @@ static void LancerLivraison(int cuisinierId)
 
         return distances; // Retourne les distances minimales
     }
+    
     // Méthode pour récupérer toutes les commandes depuis la base de données
-        public static List<Commande> RecupererToutesLesCommandes()
+    public static List<Commande> RecupererToutesLesCommandes()
+    {
+        List<Commande> commandes = new List<Commande>();
+
+        // Connexion à la base de données MySQL
+        string connectionString = "Server=localhost;Database=LivinParis;User ID=root;Password=;"; // Remplace avec tes infos de connexion
+
+        using (var connection = new MySqlConnection(connectionString))
         {
-            List<Commande> commandes = new List<Commande>();
+            connection.Open();
 
-            // Connexion à la base de données MySQL
-            string connectionString = "Server=localhost;Database=LivinParis;User ID=root;Password=;"; // Remplace avec tes infos de connexion
-
-            using (var connection = new MySqlConnection(connectionString))
+            string query = "SELECT * FROM Commande WHERE Statut != 'livrée'"; // Filtrer pour ne récupérer que les commandes non livrées
+            using (var cmd = new MySqlCommand(query, connection))
             {
-                connection.Open();
-
-                string query = "SELECT * FROM Commande WHERE Statut != 'livrée'"; // Filtrer pour ne récupérer que les commandes non livrées
-                using (var cmd = new MySqlCommand(query, connection))
+                using (var reader = cmd.ExecuteReader())
                 {
-                    using (var reader = cmd.ExecuteReader())
+                    while (reader.Read())
                     {
-                        while (reader.Read())
+                        var commande = new Commande
                         {
-                            var commande = new Commande
-                            {
-                                CommandeId = reader.GetInt32("CommandeId"),
-                                PrixTotal = reader.GetDecimal("PrixTotal"),
-                                Statut = reader.GetString("Statut"),
-                                AvisClient = reader.GetString("AvisClient"),
-                                NoteClient = reader.GetDecimal("NoteClient"),
-                                NoteCuisinier = reader.GetDecimal("NoteCuisinier"),
-                                UtilisateurId = reader.GetInt32("UtilisateurId")
-                            };
-                            commandes.Add(commande);
-                        }
+                            CommandeId = reader.GetInt32("CommandeId"),
+                            PrixTotal = reader.GetDecimal("PrixTotal"),
+                            Statut = reader.GetString("Statut"),
+                            AvisClient = reader.GetString("AvisClient"),
+                            NoteClient = reader.GetDecimal("NoteClient"),
+                            NoteCuisinier = reader.GetDecimal("NoteCuisinier"),
+                            UtilisateurId = reader.GetInt32("UtilisateurId")
+                        };
+                        commandes.Add(commande);
                     }
                 }
             }
-
-            return commandes;
         }
 
-        // Méthode pour mettre à jour le statut d'une commande à "livrée"
-        public static void MettreAJourStatutCommande(int commandeId, string nouveauStatut)
+        return commandes;
+    }
+    
+    // Méthode pour mettre à jour le statut d'une commande à "Livrée"
+    public static void MettreAJourStatutCommande(int commandeId, string nouveauStatut)
+    {
+        string connectionString = "Server=localhost;Database=LivinParis;User ID=root;Password=;"; // Remplace avec tes infos de connexion
+
+        using (var connection = new MySqlConnection(connectionString))
         {
-            string connectionString = "Server=localhost;Database=LivinParis;User ID=root;Password=;"; // Remplace avec tes infos de connexion
+            connection.Open();
 
-            using (var connection = new MySqlConnection(connectionString))
+            string query = "UPDATE Commande SET Statut = @Statut WHERE CommandeId = @CommandeId";
+            using (var cmd = new MySqlCommand(query, connection))
             {
-                connection.Open();
+                cmd.Parameters.AddWithValue("@Statut", nouveauStatut);
+                cmd.Parameters.AddWithValue("@CommandeId", commandeId);
 
-                string query = "UPDATE Commande SET Statut = @Statut WHERE CommandeId = @CommandeId";
-                using (var cmd = new MySqlCommand(query, connection))
-                {
-                    cmd.Parameters.AddWithValue("@Statut", nouveauStatut);
-                    cmd.Parameters.AddWithValue("@CommandeId", commandeId);
-
-                    cmd.ExecuteNonQuery();
-                }
+                cmd.ExecuteNonQuery();
             }
         }
-
-        // Méthode pour lancer la livraison
-        public static void LancerLivraison()
-        {
-            // Récupérer toutes les commandes non livrées
-            var commandes = RecupererToutesLesCommandes();
-
-            if (commandes.Count == 0)
-            {
-                Console.WriteLine("❌ Aucune commande à livrer.");
-                return;
-            }
-
-            // Afficher la liste des commandes
-            Console.WriteLine("=== Liste des commandes à livrer ===");
-            foreach (var commande in commandes)
-            {
-                Console.WriteLine($"{commande.CommandeId}. Commande #{commande.CommandeId} | Client : {commande.UtilisateurId} | Statut : {commande.Statut}");
-            }
-
-            // Demander au cuisinier de sélectionner une commande
-            Console.Write("Sélectionner une commande à livrer (entrer le numéro de commande) : ");
-            int choixCommande;
-
-            // Vérifier la validité de l'entrée
-            while (true)
-            {
-                string input = Console.ReadLine();
-                if (int.TryParse(input, out choixCommande) && commandes.Exists(c => c.CommandeId == choixCommande && c.Statut != "livrée"))
-                {
-                    break;  // Si l'entrée est valide, sortir de la boucle
-                }
-                else
-                {
-                    Console.WriteLine("❌ Sélection invalide. Veuillez entrer un numéro de commande valide.");
-                }
-            }
-
-            // Trouver la commande sélectionnée
-            var commandeChoisie = commandes.Find(c => c.CommandeId == choixCommande);
-
-            // Mettre à jour le statut de la commande à "livrée"
-            MettreAJourStatutCommande(commandeChoisie.CommandeId, "livrée");
-
-            // Afficher un message de confirmation
-            Console.WriteLine($"✅ La commande #{commandeChoisie.CommandeId} a été livrée !");
-        }
-
-
+    }
+    
     static void NoterClient(int cuisinierId)
     {
         // Récupérer toutes les commandes livrées par le cuisinier
-        var commandesLivrees = Commande.RecupereCommandesParCuisinierEtStatut(cuisinierId, "livrée");
+        var commandesLivrees = Commande.RecupereCommandesParCuisinierEtStatutEtDate(cuisinierId, "Livrée",DateTime.Today);
 
         Console.Clear();
         Console.WriteLine("=== Noter le client ===\n");
@@ -1599,6 +1545,7 @@ static void LancerLivraison(int cuisinierId)
         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
         Console.ReadKey();
     }
+    
     public static void MettreAJourNoteCuisinier(int commandeId, decimal noteCuisinier)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -1611,6 +1558,7 @@ static void LancerLivraison(int cuisinierId)
         conn.Open();
         cmd.ExecuteNonQuery();
     }
+    
     public static List<Commande> ToutesLesCommandes()
     {
         // Simuler la récupération des commandes depuis une base de données ou une autre source de données.
