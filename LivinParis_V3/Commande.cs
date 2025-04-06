@@ -14,6 +14,11 @@ public class Commande
     public int UtilisateurId { get; set; }
 
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
+
+    public static string STATUT_LIVREE = "Livrée";
+    public static string STATUT_PAYE_NON_LIVREE = "Payée mais non livrée";
+    public static string STATUT_EN_COURS_LIVRAISON = "En cours de livraison";
+    public static string STATUT_PAYEE = "Payée";
     
     /// <summary>
     /// Méthode qui prend en paramètres l'id du client, le prix total de la commande et le statut qui doit être à : payée
@@ -23,7 +28,7 @@ public class Commande
     /// <param name="prixTotal"></param>
     /// <param name="statut"></param>
     /// <returns></returns>
-    public static int Ajouter(int clientId, decimal prixTotal, string statut = "payée")
+    public static int Ajouter(int clientId, decimal prixTotal, string statut)
     {
         using var conn = new MySqlConnection(connectionString);
         string query = @"INSERT INTO Commande (commande_prixtotal, commande_statut, utilisateur_id)  VALUES (@Prix, @Statut, @UtilisateurId);  SELECT LAST_INSERT_ID();";
@@ -55,7 +60,7 @@ public class Commande
         cmd.Parameters.AddWithValue("@Quantite", quantite);
         cmd.Parameters.AddWithValue("@Date", dateLivraison);
         cmd.Parameters.AddWithValue("@Station", stationMetro);
-        cmd.Parameters.AddWithValue("@Statut", "A traiter");
+        cmd.Parameters.AddWithValue("@Statut", ElementCommande.STATUT_A_TRAITER);
         cmd.Parameters.AddWithValue("@DateDebutLivraison", null);
         cmd.Parameters.AddWithValue("@DureeLivraison", null);
         cmd.Parameters.AddWithValue("@CommandeId", commandeId);
@@ -371,10 +376,11 @@ public class Commande
     public static void MettreAJourStatutCommande()
     {
         using var conn = new MySqlConnection(connectionString);
-        string query = @"UPDATE Commande a SET a.commande_statut = @Statut WHERE NOT EXISTS (SELECT null FROM ElementCommande b WHERE b.commande_statut<>'Livrée' AND a.commande_id=b.commande_id)";
+        string query = @"UPDATE Commande a SET a.commande_statut = @Statut WHERE NOT EXISTS (SELECT null FROM ElementCommande b WHERE b.commande_statut<>@StatutEC AND a.commande_id=b.commande_id)";
         
         using var cmd = new MySqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@Statut", "Livrée");
+        cmd.Parameters.AddWithValue("@Statut", Commande.STATUT_LIVREE);
+        cmd.Parameters.AddWithValue("@StatutEC", ElementCommande.STATUT_LIVREE);
 
         conn.Open();
         cmd.ExecuteNonQuery();

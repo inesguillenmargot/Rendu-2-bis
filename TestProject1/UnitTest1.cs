@@ -21,7 +21,7 @@ namespace TestProject1
             // Arrange
             int clientId = 1;
             decimal prixTotal = 100.5m;
-            string statut = "payée";
+            string statut = Commande.STATUT_PAYEE;
 
             // Act
             int commandeId = Commande.Ajouter(clientId, prixTotal, statut);
@@ -35,8 +35,8 @@ namespace TestProject1
         {
             // Arrange
             int commandeId = 1;
-            string statutAvant = "payée";
-            string statutApres = "livrée";
+            string statutAvant = Commande.STATUT_PAYEE;
+            string statutApres = Commande.STATUT_LIVREE;
 
             Commande.MettreAJourStatutCommande(commandeId, statutAvant);
 
@@ -50,7 +50,7 @@ namespace TestProject1
 
         private string RecupererStatutCommandeParId(int commandeId)
         {
-            return "livrée";  // Simuler une commande avec statut "livrée"
+            return Commande.STATUT_LIVREE;  // Simuler une commande avec statut "livrée"
         }
     }
 

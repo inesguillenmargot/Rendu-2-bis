@@ -650,7 +650,7 @@ public class Program
                                         if (paiement == "o")
                                         {
                                             // Ajouter la commande avant l'ajout des plats
-                                            int commandeId = Commande.Ajouter(clientId, total);
+                                            int commandeId = Commande.Ajouter(clientId, total, Commande.STATUT_PAYEE);
 
                                             // Ajout des plats sélectionnés à la commande
                                             foreach (var commande in platsCommandes)
@@ -660,7 +660,7 @@ public class Program
                                             Console.WriteLine("✅ Commande passée avec succès !");
                                             
                                             // Mise à jour du statut de la commande à "payée mais non livrée"
-                                            Commande.MettreAJourStatutCommande(commandeId, "payée mais non livrée");
+                                            Commande.MettreAJourStatutCommande(commandeId, Commande.STATUT_PAYE_NON_LIVREE);
 
                                             // Demande d'un avis et d'une note après le paiement = fin de l'expérience utilisateur
                                             Console.WriteLine("\nMerci pour votre commande ! Veuillez laisser un avis : ");
@@ -1268,7 +1268,7 @@ public class Program
         }
 
         // Récupérer toutes les commandes non encore livrées
-        var commandesEnCours = Commande.RecupereCommandesParCuisinierEtStatutEtDate(cuisinierId, "payée mais non livrée",DateTime.Today);
+        var commandesEnCours = Commande.RecupereCommandesParCuisinierEtStatutEtDate(cuisinierId, Commande.STATUT_PAYE_NON_LIVREE,DateTime.Today);
 
         Console.Clear();
         Console.WriteLine("=== Lancer la livraison ===\n");
@@ -1326,8 +1326,8 @@ public class Program
         // Numéro de commande valide
         int commandeId = choix;
         
-        // recuperer la liste des éléments de cette commande prévus pour aujourd'hui
-        var elements = ElementCommande.RecupererElementCommandeParCommandeId(commandeId).FindAll(e => e.DateSouhaitee.Date == DateTime.Today);
+        // recuperer la liste des éléments de cette commande prévus pour aujourd'hui et non traitée
+        var elements = ElementCommande.RecupererElementCommandeParCommandeIdEtCuisinierEtStatut(commandeId, cuisinierId, ElementCommande.STATUT_A_TRAITER).FindAll(e => e.DateSouhaitee.Date == DateTime.Today);
         if (elements.Count == 0)
         {
             Console.WriteLine("❌ Aucun élément à livrer aujourd’hui pour cette commande.");
@@ -1338,7 +1338,7 @@ public class Program
         Console.WriteLine("\nÉléments de la commande pour aujourd’hui :");
         for (int i = 0; i < elements.Count; i++)
         {
-            Console.WriteLine($"{i + 1}. Plat ID : {elements[i].PlatId} | Quantité : {elements[i].Quantite} | Station : {elements[i].StationMetro}");
+            Console.WriteLine($"{i + 1}. Plat ID : {elements[i].PlatId} | Quantité : {elements[i].Quantite} | Statut : {elements[i].Statut} | Station : {elements[i].StationMetro}");
         }
         
         // Si un seul élément, le sélectionner automatiquement
@@ -1352,7 +1352,14 @@ public class Program
                 if (int.TryParse(input, out int selection) && selection > 0 && selection <= elements.Count)
                 {
                     indexSelectionne = selection - 1;
-                    break;
+                    if (elements[indexSelectionne].Statut != ElementCommande.STATUT_PAYE_NON_LIVREE)
+                    {
+                        Console.WriteLine("❌ La commande n'est plus a traiter !");
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
                 Console.WriteLine("❌ Sélection invalide. Réessayez.");
             }
@@ -1367,7 +1374,7 @@ public class Program
 
         // Marquage du début de la livraison pour cet élément
         elementAtraiter.DateDebutLivraison = DateTime.Now;
-        elementAtraiter.Statut = "En cours de livraison";
+        elementAtraiter.Statut = ElementCommande.STATUT_EN_COURS_LIVRAISON;
         
         // Récupérer la station de métro du cuisinier
         string stationMetroCuisinier = Utilisateur.RecupererParId(cuisinierId).MetroProche;
@@ -1397,7 +1404,7 @@ public class Program
     static void NoterClient(int cuisinierId)
     {
         // Récupérer toutes les commandes livrées par le cuisinier
-        var commandesLivrees = Commande.RecupereCommandesParCuisinierEtStatutEtDate(cuisinierId, "Livrée",DateTime.Today);
+        var commandesLivrees = Commande.RecupereCommandesParCuisinierEtStatutEtDate(cuisinierId, Commande.STATUT_LIVREE,DateTime.Today);
 
         Console.Clear();
         Console.WriteLine("=== Noter le client ===\n");

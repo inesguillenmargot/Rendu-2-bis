@@ -19,6 +19,11 @@ public class ElementCommande
     
     
     private static string connectionString = "Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;";
+    
+    public static string STATUT_LIVREE = "Livrée";
+    public static string STATUT_PAYE_NON_LIVREE = "Payée mais non livrée";
+    public static string STATUT_EN_COURS_LIVRAISON = "En cours de livraison";
+    public static string STATUT_A_TRAITER = "A traiter";
 
     public int Ajouter()
     {
@@ -41,7 +46,7 @@ public class ElementCommande
     
     /// <summary>
     /// Méthode qui prend en paramètres l'id de la commande
-    /// Méthode qui permet de retourner une liste des éléments de commande d'une commande
+    /// Méthode qui permet de retourner une liste des éléments de commande d'une commande (peut-importe le cuisinier concerné)
     /// </summary>
     /// <param name="commandeId"></param>
     /// <returns></returns>
@@ -77,6 +82,50 @@ public class ElementCommande
         }
         return elementsCommande;
     }
+    
+    /// <summary>
+    /// Méthode qui prend en paramètres l'id de la commande + celui du cuisinier + le statut de l'élément de commande
+    /// Méthode qui permet de retourner une liste des éléments de commande (appartenant au cuisinier) d'une commande en fonction d'un statut particulier
+    /// </summary>
+    /// <param name="commandeId"></param>
+    /// <param name="idcuisinier"></param>
+    /// <returns></returns>
+    public static List<ElementCommande> RecupererElementCommandeParCommandeIdEtCuisinierEtStatut(int commandeId, int idcuisinier, string statut)
+    {
+        var elementsCommande = new List<ElementCommande>();
+
+        using var conn = new MySqlConnection(connectionString);
+        string query = @"SELECT ec.* FROM ElementCommande ec JOIN PlatPropose p ON ec.plat_id = p.plat_id JOIN PreparerPlat pp ON p.plat_id = pp.plat_id WHERE pp.utilisateur_id = @CuisinierId AND ec.commande_id= @CommandeId AND ec.commande_statut = @Statut";
+
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@CommandeId", commandeId);
+        cmd.Parameters.AddWithValue("@CuisinierId", idcuisinier);
+        cmd.Parameters.AddWithValue("@Statut", statut);
+
+        conn.Open();
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            elementsCommande.Add(new ElementCommande
+            {
+                CommandeDetailId = reader.GetInt32("commandedetail_id"),
+                Quantite = reader.GetInt32("commande_quantite"),
+                DateSouhaitee = reader.GetDateTime("commande_date_souhaitee"),
+                StationMetro = reader.GetString("commande_stationmetro"),
+                Statut = reader.GetString("commande_statut"),
+                //DateDebutLivraison = reader.GetDateTime("commande_date_debut_livraison"),
+                DateDebutLivraison = new DateTime(),
+                //DureeLivraison = reader.GetInt32("commande_duree_livraison"),
+                DureeLivraison = 0,
+                CommandeId = reader.GetInt32("commande_id"),
+                PlatId = reader.GetInt32("plat_id")
+            });
+        }
+        return elementsCommande;
+    }
+    
     /// <summary>
     /// Cette méthode ne prend pas de paramètres. Elle permet de mettre à jour les élements "statut", "date de debut de livraison", "la durée de la livraison" et "Id de l'élement de commande".
     /// </summary>
