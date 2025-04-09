@@ -4,8 +4,9 @@ using ClosedXML.Excel;
 
 namespace LivinParisVF
 {
-    public class Graphe<T>
+   public class Graphe<T>
     {
+        private List<T> dernierChemin = new List<T>();
         private Dictionary<T, List<Lien<T>>> listeAdjacence;
         private Dictionary<T, int> indexNoeuds;
         private int currentIndex;
@@ -16,63 +17,10 @@ namespace LivinParisVF
             indexNoeuds = new Dictionary<T, int>();
             currentIndex = 0;
         }
-        // Méthode pour importer les données depuis un fichier Excel
-        public void ImporterDonneesDepuisExcel(string cheminExcel)
+
+        public List<T> GetDernierChemin()
         {
-            var workbook = new XLWorkbook(cheminExcel);
-            var worksheet = workbook.Worksheet(1);
-
-            // Charger les données du graphe depuis le fichier Excel
-            var graphData = worksheet.RowsUsed().Skip(1)
-                .Select(row =>
-                {
-                    string station = row.Cell(1).Value.ToString().Trim(); // Supprimer les espaces inutiles
-                    string lien = row.Cell(2).Value.ToString().Trim();
-                    double poids = 0;
-
-                    try
-                    {
-                        poids = Convert.ToDouble(row.Cell(3).Value);
-                    }
-                    catch (InvalidCastException)
-                    {
-                        Console.WriteLine($"Avertissement : Impossible de convertir la cellule en nombre pour la station {station}.");
-                    }
-
-                    return new
-                    {
-                        Station = station,
-                        Lien = lien,
-                        Poids = poids
-                    };
-                }).ToList();
-
-            // Afficher toutes les stations et leurs liens pour vérifier que "Concorde" est bien dans la liste
-            Console.WriteLine("Stations importées :");
-            foreach (var data in graphData)
-            {
-                Console.WriteLine($"Station: {data.Station}, Lien: {data.Lien}, Poids: {data.Poids}");
-            }
-
-            // Construire la liste d'adjacence pour le graphe
-            foreach (var data in graphData)
-            {
-                AjouterNoeud((T)Convert.ChangeType(data.Station, typeof(T)));  // Ajouter chaque station en tant que noeud
-
-                if (!listeAdjacence.ContainsKey((T)Convert.ChangeType(data.Station, typeof(T))))
-                {
-                    listeAdjacence[(T)Convert.ChangeType(data.Station, typeof(T))] = new List<Lien<T>>();
-                }
-
-                listeAdjacence[(T)Convert.ChangeType(data.Station, typeof(T))].Add(new Lien<T>((T)Convert.ChangeType(data.Lien, typeof(T)), data.Poids));
-            }
-
-            // Afficher le contenu du dictionnaire listeAdjacence pour s'assurer que "Concorde" est dedans
-            Console.WriteLine("\nContenu du dictionnaire listeAdjacence :");
-            foreach (var station in listeAdjacence)
-            {
-                Console.WriteLine($"Station: {station.Key}, Nombre de voisins: {station.Value.Count}");
-            }
+            return dernierChemin;
         }
         public void AjouterNoeud(T noeud)
         {
@@ -83,7 +31,7 @@ namespace LivinParisVF
             }
         }
 
-        public void AjouterLien(T depart, T destination, double poids)
+        public void AjouterLien(T depart, T destination, int poids)
         {
             if (listeAdjacence.ContainsKey(depart))
             {
@@ -97,8 +45,9 @@ namespace LivinParisVF
 
         public void ParcoursLargeur(T depart)
         {
+            Console.WriteLine("Parcours en Largeur");
             var file = new Queue<T>();
-            var visite = new HashSet<T>(); 
+            var visite = new HashSet<T>();
             file.Enqueue(depart);
             visite.Add(depart);
             int compteur = 0;
@@ -145,7 +94,7 @@ namespace LivinParisVF
                 }
             }
 
-            return visite.Count ==221;
+            return visite.Count == listeAdjacence.Count;
         }
 
         public Dictionary<T, List<Lien<T>>> GetListeAdjacence()
@@ -164,133 +113,302 @@ namespace LivinParisVF
             }
         }
 
-        public Dictionary<T, double> Dijkstra(T source)
+        public void ParcoursProfondeurAvecAffichage(T sommetDepart)
         {
-            var distances = new Dictionary<T, double>();  // Stocke la distance de la source à chaque nœud
-            var parents = new Dictionary<T, T>();         // Pour reconstruire le chemin
-            var priorityQueue = new SortedDictionary<double, T>(); // File de priorité
+            Console.WriteLine("Parcours en Profondeur");
+            var visite = new HashSet<T>();
+            int compteur = 0;
 
-            // Initialisation
+            DFS_Affichage(sommetDepart, visite, ref compteur);
+
+            Console.WriteLine($"\nNombre total de sommets visités : {compteur}");
+        }
+
+        private void DFS_Affichage(T sommet, HashSet<T> visite, ref int compteur)
+        {
+            visite.Add(sommet);
+            Console.WriteLine($"Sommet visité : {sommet}");
+            compteur++;
+
+            foreach (var voisin in listeAdjacence[sommet])
+            {
+                if (!visite.Contains(voisin.Destination))
+                {
+                    DFS_Affichage(voisin.Destination, visite, ref compteur);
+                }
+            }
+        }
+
+        public void DijkstraEtAfficheChemin(T depart, T arrivee)
+        {
+            Console.WriteLine("DIJKSTRA");
+            var distances = new Dictionary<T, double>();
+            var precedents = new Dictionary<T, T>();
+            var filePriorite = new PriorityQueue<T, double>();
+            var visites = new HashSet<T>();
+
+            // Initialisation des distances à +∞
             foreach (var noeud in listeAdjacence.Keys)
             {
-                distances[noeud] = double.MaxValue; // Distance infinie
-                parents[noeud] = default(T);        // Pas de parent initialement
+                distances[noeud] = double.PositiveInfinity;
             }
-            distances[source] = 0;  // La distance de la source à elle-même est 0
-            priorityQueue[0] = source;
 
-            while (priorityQueue.Count > 0)
+            distances[depart] = 0;
+            filePriorite.Enqueue(depart, 0);
+
+            // Algorithme principal
+            while (filePriorite.Count > 0)
             {
-                var currentNode = priorityQueue.First().Value;
-                priorityQueue.Remove(priorityQueue.First().Key);
+                var courant = filePriorite.Dequeue();
 
-                foreach (var voisin in listeAdjacence[currentNode])
+                if (!visites.Add(courant)) continue;
+
+                if (courant.Equals(arrivee)) break;
+
+                foreach (var voisin in listeAdjacence[courant])
                 {
-                    double newDist = distances[currentNode] + voisin.Poids;
-                    if (newDist < distances[voisin.Destination])
-                    {
-                        distances[voisin.Destination] = newDist;
-                        parents[voisin.Destination] = currentNode;
+                    var voisinNoeud = voisin.Destination;
+                    var poids = voisin.Poids;
 
-                        // Ajouter le voisin à la file de priorité avec la nouvelle distance
-                        if (!priorityQueue.ContainsValue(voisin.Destination))
-                        {
-                            priorityQueue[newDist] = voisin.Destination;
-                        }
+                    // Vérifie si la station a été bien initialisée dans distances
+                    if (!distances.ContainsKey(voisinNoeud))
+                    {
+                        distances[voisinNoeud] = double.PositiveInfinity;
+                    }
+
+                    double nouvelleDistance = distances[courant] + poids;
+
+                    if (nouvelleDistance < distances[voisinNoeud])
+                    {
+                        distances[voisinNoeud] = nouvelleDistance;
+                        precedents[voisinNoeud] = courant;
+                        filePriorite.Enqueue(voisinNoeud, nouvelleDistance);
                     }
                 }
             }
 
-            return distances;
+            // Si aucun chemin trouvé
+            if (!precedents.ContainsKey(arrivee) && !arrivee.Equals(depart))
+            {
+                Console.WriteLine("Aucun chemin trouvé entre les deux stations.");
+                return;
+            }
+
+            // Reconstruction du chemin
+            var chemin = new List<T>();
+            var actuel = arrivee;
+            while (!actuel.Equals(depart))
+            {
+                chemin.Insert(0, actuel);
+                actuel = precedents[actuel];
+            }
+            chemin.Insert(0, depart);
+
+            // Affichage du chemin
+            Console.WriteLine("\nChemin le plus court :");
+            foreach (var station in chemin)
+                Console.WriteLine($"  {station}");
+
+            dernierChemin = chemin;
+            // Calcul du temps réel en suivant les arcs du graphe
+            int tempsTotal = 0;
+            for (int i = 0; i < chemin.Count - 1; i++)
+            {
+                var from = chemin[i];
+                var to = chemin[i + 1];
+
+                // Trouver le lien entre from et to
+                var lien = listeAdjacence[from].FirstOrDefault(l => l.Destination.Equals(to));
+
+                if (lien != null)
+                {
+                    
+                    tempsTotal += lien.Poids;
+                }
+                else
+                {
+                    Console.WriteLine($" Lien manquant entre {from} et {to} (temps ignoré)");
+                }
+            }
+            Console.WriteLine($"\nTemps total estimé (vérifié) : {tempsTotal} minutes");
+
+
         }
-
-        public Dictionary<T, double> BellmanFord(T source)
+        public void BellmanFordEtAfficheChemin(T depart, T arrivee)
         {
+            Console.WriteLine("BELLMANFORD");
             var distances = new Dictionary<T, double>();
-            var parents = new Dictionary<T, T>();
+            var precedents = new Dictionary<T, T>();
 
-            // Initialisation
+            // Initialisation des distances
             foreach (var noeud in listeAdjacence.Keys)
             {
-                distances[noeud] = double.MaxValue;
-                parents[noeud] = default(T);
+                distances[noeud] = double.PositiveInfinity;
             }
-            distances[source] = 0;
+            distances[depart] = 0;
 
-            // Relaxation des arêtes V - 1 fois
-            for (int i = 1; i < listeAdjacence.Keys.Count; i++)
+            var noeuds = listeAdjacence.Keys.ToList();
+
+            // Étapes de relaxation
+            for (int i = 0; i < noeuds.Count - 1; i++)
             {
-                foreach (var noeud in listeAdjacence.Keys)
+                foreach (var u in listeAdjacence.Keys)
                 {
-                    foreach (var voisin in listeAdjacence[noeud])
+                    foreach (var lien in listeAdjacence[u])
                     {
-                        if (distances[noeud] + voisin.Poids < distances[voisin.Destination])
+                        var v = lien.Destination;
+                        var poids = lien.Poids;
+
+                        if (distances[u] + poids < distances[v])
                         {
-                            distances[voisin.Destination] = distances[noeud] + voisin.Poids;
-                            parents[voisin.Destination] = noeud;
+                            distances[v] = distances[u] + poids;
+                            precedents[v] = u;
                         }
                     }
                 }
             }
 
             // Détection de cycle négatif
-            foreach (var noeud in listeAdjacence.Keys)
+            foreach (var u in listeAdjacence.Keys)
             {
-                foreach (var voisin in listeAdjacence[noeud])
+                foreach (var lien in listeAdjacence[u])
                 {
-                    if (distances[noeud] + voisin.Poids < distances[voisin.Destination])
+                    var v = lien.Destination;
+                    if (distances[u] + lien.Poids < distances[v])
                     {
-                        Console.WriteLine("Le graphe contient un cycle négatif.");
-                        return null;
+                        Console.WriteLine("Le graphe contient un cycle de poids négatif !");
+                        return;
                     }
                 }
             }
 
-            return distances;
-        }
-
-        public Dictionary<T, Dictionary<T, double>> FloydWarshall()
-        {
-            var distances = new Dictionary<T, Dictionary<T, double>>();
-            var parents = new Dictionary<T, Dictionary<T, T>>();
-
-            // Initialisation
-            foreach (var noeud in listeAdjacence.Keys)
+            // Si aucun chemin trouvé
+            if (!precedents.ContainsKey(arrivee) && !arrivee.Equals(depart))
             {
-                distances[noeud] = new Dictionary<T, double>();
-                parents[noeud] = new Dictionary<T, T>();
-
-                foreach (var voisin in listeAdjacence[noeud])
-                {
-                    distances[noeud][voisin.Destination] = voisin.Poids;
-                    parents[noeud][voisin.Destination] = noeud;
-                }
-
-                // La distance d'un nœud à lui-même est 0
-                distances[noeud][noeud] = 0;
+                Console.WriteLine(" Aucun chemin trouvé entre les deux stations.");
+                return;
             }
 
-            // Appliquer l'algorithme de Floyd-Warshall
-            foreach (var k in listeAdjacence.Keys)
+            // Reconstruction du chemin
+            var chemin = new List<T>();
+            var actuel = arrivee;
+
+            while (!actuel.Equals(depart))
             {
-                foreach (var i in listeAdjacence.Keys)
+                chemin.Insert(0, actuel);
+                actuel = precedents[actuel];
+            }
+            chemin.Insert(0, depart);
+
+            dernierChemin = chemin;
+            // Affichage du chemin
+            Console.WriteLine("\n Chemin le plus court (Bellman-Ford) :");
+            foreach (var station in chemin)
+            {
+                Console.WriteLine($" {station}");
+            }
+
+            // Calcul du temps total réel avec vérification des arcs
+            double tempsTotal = 0;
+            for (int i = 0; i < chemin.Count - 1; i++)
+            {
+                var from = chemin[i];
+                var to = chemin[i + 1];
+
+                var lien = listeAdjacence[from].FirstOrDefault(l => l.Destination.Equals(to));
+
+                if (lien != null)
                 {
-                    foreach (var j in listeAdjacence.Keys)
+                    tempsTotal += lien.Poids;
+                }
+                else
+                {
+                    Console.WriteLine($" Lien manquant entre {from} et {to} (temps ignoré)");
+                }
+            }
+
+            Console.WriteLine($"\n Temps total estimé : {tempsTotal} minutes");
+        }
+        
+        public void FloydWarshallEtAfficheChemin()
+        {
+            var noeuds = listeAdjacence.Keys.ToList();
+            int n = noeuds.Count;
+
+            // Dictionnaires pour indexer les sommets
+            var indexNoeud = new Dictionary<T, int>();
+            var inverseIndex = new Dictionary<int, T>();
+
+            for (int i = 0; i < n; i++)
+            {
+                indexNoeud[noeuds[i]] = i;
+                inverseIndex[i] = noeuds[i];
+            }
+
+            // Matrice des distances
+            double[,] distances = new double[n, n];
+            T?[,] precedents = new T[n, n];
+
+            // Initialisation
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                {
+                    if (i == j)
                     {
-                        if (distances[i][k] + distances[k][j] < distances[i][j])
+                        distances[i, j] = 0;
+                    }
+                    else
+                    {
+                        distances[i, j] = double.PositiveInfinity;
+                    }
+                    precedents[i, j] = default;
+                }
+
+            // Remplir avec les poids connus
+            foreach (var u in listeAdjacence.Keys)
+            {
+                int i = indexNoeud[u];
+                foreach (var lien in listeAdjacence[u])
+                {
+                    int j = indexNoeud[lien.Destination];
+                    distances[i, j] = lien.Poids;
+                    precedents[i, j] = u;
+                }
+            }
+
+            // Algorithme de Floyd-Warshall
+            for (int k = 0; k < n; k++)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        if (distances[i, k] + distances[k, j] < distances[i, j])
                         {
-                            distances[i][j] = distances[i][k] + distances[k][j];
-                            parents[i][j] = parents[k][j];
+                            distances[i, j] = distances[i, k] + distances[k, j];
+                            precedents[i, j] = precedents[k, j];
                         }
                     }
                 }
             }
 
-            return distances;
+            // Affichage optionnel des distances minimales entre toutes les paires
+            Console.WriteLine("\nPlus courts chemins (Floyd-Warshall) :");
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    var depart = inverseIndex[i];
+                    var arrivee = inverseIndex[j];
+                    var distance = distances[i, j];
+
+                    if (double.IsInfinity(distance)) continue;
+
+                    Console.WriteLine($" → {depart} → {arrivee} : {distance} min");
+                }
+            }
         }
     }
-
-    
 }
 
 

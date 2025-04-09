@@ -3,7 +3,6 @@ using SkiaSharp;
 
 namespace LivinParisVF
 {
-    
     public class GrapheVisualizer<T>
     {
         private Graphe<T> _graphe;
@@ -52,6 +51,17 @@ namespace LivinParisVF
         {
             using var bitmap = new SKBitmap(_width, _height);
             using var canvas = new SKCanvas(bitmap);
+            var chemin = _graphe.GetDernierChemin();
+            var liensChemin = new HashSet<(int, int)>();
+
+            for (int i = 0; i < chemin.Count - 1; i++)
+            {
+                if (chemin[i] is Station s1 && chemin[i + 1] is Station s2)
+                {
+                    liensChemin.Add((s1.Id, s2.Id));
+                    liensChemin.Add((s2.Id, s1.Id)); // graphe non orienté
+                }
+            }
             canvas.Clear(SKColors.White);
 
             var paintArrete = new SKPaint { Color = SKColors.Black, StrokeWidth = 1.5f, IsAntialias = true };
@@ -88,7 +98,14 @@ namespace LivinParisVF
                     if (_positions.ContainsKey(voisinId))
                     {
                         SKPoint p2 = _positions[voisinId];
-                        canvas.DrawLine(p1, p2, paintArrete);
+                        var id1 = (noeud.Key as Station)?.Id ?? -1;
+                        var id2 = (voisinId as Station)?.Id ?? -1;
+
+                        var paint = liensChemin.Contains((id1, id2))
+                            ? new SKPaint { Color = SKColors.Red, StrokeWidth = 4, IsAntialias = true }
+                            : paintArrete;
+
+                        canvas.DrawLine(p1, p2, paint);
                     }
                 }
             }

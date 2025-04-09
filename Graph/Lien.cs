@@ -3,9 +3,9 @@
 public class Lien<T>
 {
     public T Destination { get; set; }
-    public double Poids { get; set; }
+    public int Poids { get; set; }
 
-    public Lien(T destination, double poids)
+    public Lien(T destination, int poids)
     {
         Destination = destination;
         Poids = poids;

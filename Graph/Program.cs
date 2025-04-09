@@ -4,44 +4,59 @@ using ClosedXML.Excel;
 
 class Program
 {
-
-    
-    public static string NormaliserNom(string nom)
+    /// <summary>
+    /// Méthode permettant de récupérer le fichier excel, et toutes les composantes de celui-ci
+    /// </summary>
+    public static class FichierUtilise
     {
-        return nom.ToLower().Trim(); // Convertit en minuscules et enlève les espaces avant/après
+        public static string GetCheminExcel()
+        {
+            string basePath = Directory.GetParent(AppContext.BaseDirectory).Parent.Parent.Parent.Parent.FullName;
+            return Path.Combine(basePath, "Graph", "MetroParis (4).xlsx");
+        }
     }
 
-    
+
     static void Main()
     {
-        string cheminExcel = @"C:\Users\guill\RiderProjects\LivinParis_V3\Graph\bin\Debug\net8.0\MetroParis (4).xlsx";
+        string cheminExcel = FichierUtilise.GetCheminExcel();
         var graphe = ChargementGraphe.ChargerGrapheDepuisExcel(cheminExcel);
         var visualiseur = new GrapheVisualizer<Station>(graphe);
-        visualiseur.DessinerGraphe("graphe_paris.png");
+        
+
 
         var stationSource = graphe.GetListeAdjacence().Keys.First();
         graphe.ParcoursLargeur(stationSource);
+        Console.WriteLine();
         Console.WriteLine(graphe.EstConnexe());
+        Console.WriteLine();
+        graphe.ParcoursProfondeurAvecAffichage(stationSource);
 
-        // 1. Tester l'algorithme de Dijkstra
-        Console.WriteLine("\n--- Algorithme de Dijkstra ---");
-        var dijkstraDistances = graphe.Dijkstra(stationSource);
-        Console.WriteLine("Distances depuis la station source (Dijkstra) :");
-        foreach (var item in dijkstraDistances)
+        Console.WriteLine("Entrez le nom de la station de départ :");
+        string nomDepart = Console.ReadLine().Trim().ToLower();
+
+        Console.WriteLine("Entrez le nom de la station d’arrivée :");
+        string nomArrivee = Console.ReadLine().Trim().ToLower();
+
+        var stationDepart = graphe.GetListeAdjacence().Keys
+            .FirstOrDefault(s => s.Nom.ToLower().Contains(nomDepart));
+
+        var stationArrivee = graphe.GetListeAdjacence().Keys
+            .FirstOrDefault(s => s.Nom.ToLower().Contains(nomArrivee));
+        if (stationDepart == null)
         {
-            Console.WriteLine($"Station: {item.Key}, Distance: {item.Value}");
+            Console.WriteLine("La station de départ est introuvable.");
         }
-
-        // 2. Tester l'algorithme de Bellman-Ford
-        Console.WriteLine("\n--- Algorithme de Bellman-Ford ---");
-        var bellmanFordDistances = graphe.BellmanFord(stationSource);
-        if (bellmanFordDistances != null)
+        else if (stationArrivee == null)
         {
-            Console.WriteLine("Distances depuis la station source (Bellman-Ford) :");
-            foreach (var item in bellmanFordDistances)
-            {
-                Console.WriteLine($"Station: {item.Key}, Distance: {item.Value}");
-            }
+            Console.WriteLine("La station d’arrivée est introuvable.");
+        }
+        else
+        {
+            graphe.DijkstraEtAfficheChemin(stationDepart, stationArrivee);
+            ///graphe.BellmanFordEtAfficheChemin(stationDepart, stationArrivee);
+            ///graphe.FloydWarshallEtAfficheChemin();
+            visualiseur.DessinerGraphe("graphe_paris.png");
         }
     }
 }

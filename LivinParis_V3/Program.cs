@@ -13,7 +13,7 @@ public class Program
 
     static void Main(string[] args)
     {
-        string cheminExcel = @"C:\Users\guill\RiderProjects\LivinParis_V3\Graph\bin\Debug\net8.0\MetroParis (4).xlsx";
+        string cheminExcel = FichierUtilise.GetCheminExcel();
         var graphe = ChargementGraphe.ChargerGrapheDepuisExcel(cheminExcel);
         var visualiseur = new GrapheVisualizer<Station>(graphe);
         visualiseur.DessinerGraphe("graphe_paris.png");
@@ -1447,5 +1447,17 @@ public class Program
 
         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
         Console.ReadKey();
+    }
+    
+    /// <summary>
+    /// méthode permettant de retrouver de manièreprpre le fichier excel avec les stations de m"tro, leur lattitude, le temps entre chaque station etc...
+    /// </summary>
+    public static class FichierUtilise
+    {
+        public static string GetCheminExcel()
+        {
+            string basePath = Directory.GetParent(AppContext.BaseDirectory).Parent.Parent.Parent.Parent.FullName;
+            return Path.Combine(basePath, "Graph", "MetroParis (4).xlsx");
+        }
     }
 }
