@@ -18,10 +18,19 @@ namespace LivinParisVF
             currentIndex = 0;
         }
 
+        /// <summary>
+        /// Retourne le dernier chemin calculé par un algorithme de plus court chemin (Dijkstra ou Bellman-Ford).
+        /// </summary>
+        /// <returns></returns>
         public List<T> GetDernierChemin()
         {
             return dernierChemin;
         }
+        
+        /// <summary>
+        /// Ajoute un nouveau nœud au graphe s’il n’est pas déjà présent
+        /// </summary>
+        /// <param name="noeud"></param>
         public void AjouterNoeud(T noeud)
         {
             if (!listeAdjacence.ContainsKey(noeud))
@@ -31,6 +40,12 @@ namespace LivinParisVF
             }
         }
 
+        /// <summary>
+        /// Ajoute un lien (arête) entre deux nœuds du graphe avec un poids spécifié.
+        /// </summary>
+        /// <param name="depart"></param>
+        /// <param name="destination"></param>
+        /// <param name="poids"></param>
         public void AjouterLien(T depart, T destination, int poids)
         {
             if (listeAdjacence.ContainsKey(depart))
@@ -43,6 +58,11 @@ namespace LivinParisVF
             }
         }
 
+        /// <summary>
+        /// Effectue un parcours en largeur du graphe à partir d’un nœud donné.
+        /// Affiche chaque nœud visité et le nombre total de nœuds parcourus.
+        /// </summary>
+        /// <param name="depart"></param>
         public void ParcoursLargeur(T depart)
         {
             Console.WriteLine("Parcours en Largeur");
@@ -70,6 +90,10 @@ namespace LivinParisVF
             Console.WriteLine($"Nombre de nœuds parcourus : {compteur}");
         }
 
+        /// <summary>
+        /// Vérifie si le graphe est connexe, c’est-à-dire si tous les nœuds sont accessibles à partir d’un nœud.
+        /// </summary>
+        /// <returns></returns>
         public bool EstConnexe()
         {
             if (listeAdjacence.Count == 0) return false;
@@ -97,11 +121,18 @@ namespace LivinParisVF
             return visite.Count == listeAdjacence.Count;
         }
 
+        /// <summary>
+        /// Retourne la liste d’adjacence du graphe (structure interne du graphe).
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<T, List<Lien<T>>> GetListeAdjacence()
         {
             return listeAdjacence;
         }
 
+        /// <summary>
+        /// Vérifie et affiche les stations (nœuds) isolées n’ayant aucun voisin dans le graphe.
+        /// </summary>
         public void VerifierStationsIsolées()
         {
             foreach (var noeud in listeAdjacence.Keys)
@@ -113,6 +144,11 @@ namespace LivinParisVF
             }
         }
 
+        /// <summary>
+        /// Effectue un parcours en profondeur du graphe à partir d’un sommet donné.
+        /// Affiche les sommets visités et le nombre total.
+        /// </summary>
+        /// <param name="sommetDepart"></param>
         public void ParcoursProfondeurAvecAffichage(T sommetDepart)
         {
             Console.WriteLine("Parcours en Profondeur");
@@ -124,6 +160,13 @@ namespace LivinParisVF
             Console.WriteLine($"\nNombre total de sommets visités : {compteur}");
         }
 
+        /// <summary>
+        /// Effectue un parcours en profondeur du graphe à partir d’un sommet donné.
+        /// Sans Afficher les sommets visités et le nombre total.
+        /// </summary>
+        /// <param name="sommet"></param>
+        /// <param name="visite"></param>
+        /// <param name="compteur"></param>
         private void DFS_Affichage(T sommet, HashSet<T> visite, ref int compteur)
         {
             visite.Add(sommet);
@@ -139,6 +182,12 @@ namespace LivinParisVF
             }
         }
 
+        /// <summary>
+        /// Applique l’algorithme de Dijkstra pour trouver et afficher le chemin le plus court entre deux sommets.
+        /// Affiche également le temps total estimé.
+        /// </summary>
+        /// <param name="depart"></param>
+        /// <param name="arrivee"></param>
         public void DijkstraEtAfficheChemin(T depart, T arrivee)
         {
             Console.WriteLine("DIJKSTRA");
@@ -234,6 +283,13 @@ namespace LivinParisVF
 
 
         }
+        
+        /// <summary>
+        /// Applique l’algorithme de Bellman-Ford pour déterminer le chemin le plus court entre deux nœuds.
+        /// Détecte aussi les cycles de poids négatif. Affiche le chemin et le temps total estimé.
+        /// </summary>
+        /// <param name="depart"></param>
+        /// <param name="arrivee"></param>
         public void BellmanFordEtAfficheChemin(T depart, T arrivee)
         {
             Console.WriteLine("BELLMANFORD");
@@ -330,6 +386,10 @@ namespace LivinParisVF
             Console.WriteLine($"\n Temps total estimé : {tempsTotal} minutes");
         }
         
+        /// <summary>
+        /// Applique l’algorithme de Floyd-Warshall pour calculer les plus courts chemins entre toutes les paires de nœuds.
+        /// Affiche les distances entre tous les couples de stations.
+        /// </summary>
         public void FloydWarshallEtAfficheChemin()
         {
             var noeuds = listeAdjacence.Keys.ToList();
