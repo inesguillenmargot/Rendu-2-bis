@@ -284,6 +284,105 @@ namespace LivinParisVF
 
         }
         
+        
+        /// <summary>
+        ///  Applique l’algorithme de Dijkstra pour trouver et  retourner le temps le chemin le plus court entre deux sommets.
+       
+        /// </summary>
+        /// <param name="depart"></param>
+        /// <param name="arrivee"></param>
+        public int Dijkstra(T depart, T arrivee)
+        {
+            Console.WriteLine("DIJKSTRA");
+            var distances = new Dictionary<T, double>();
+            var precedents = new Dictionary<T, T>();
+            var filePriorite = new PriorityQueue<T, double>();
+            var visites = new HashSet<T>();
+
+            // Initialisation des distances à +∞
+            foreach (var noeud in listeAdjacence.Keys)
+            {
+                distances[noeud] = double.PositiveInfinity;
+            }
+
+            distances[depart] = 0;
+            filePriorite.Enqueue(depart, 0);
+
+            // Algorithme principal
+            while (filePriorite.Count > 0)
+            {
+                var courant = filePriorite.Dequeue();
+
+                if (!visites.Add(courant)) continue;
+
+                if (courant.Equals(arrivee)) break;
+
+                foreach (var voisin in listeAdjacence[courant])
+                {
+                    var voisinNoeud = voisin.Destination;
+                    var poids = voisin.Poids;
+
+                    // Vérifie si la station a été bien initialisée dans distances
+                    if (!distances.ContainsKey(voisinNoeud))
+                    {
+                        distances[voisinNoeud] = double.PositiveInfinity;
+                    }
+
+                    double nouvelleDistance = distances[courant] + poids;
+
+                    if (nouvelleDistance < distances[voisinNoeud])
+                    {
+                        distances[voisinNoeud] = nouvelleDistance;
+                        precedents[voisinNoeud] = courant;
+                        filePriorite.Enqueue(voisinNoeud, nouvelleDistance);
+                    }
+                }
+            }
+
+            // Si aucun chemin trouvé
+            if (!precedents.ContainsKey(arrivee) && !arrivee.Equals(depart))
+            {
+                Console.WriteLine("Aucun chemin trouvé entre les deux stations.");
+                
+            }
+
+            // Reconstruction du chemin
+            var chemin = new List<T>();
+            var actuel = arrivee;
+            while (!actuel.Equals(depart))
+            {
+                chemin.Insert(0, actuel);
+                actuel = precedents[actuel];
+            }
+            chemin.Insert(0, depart);
+
+            // Affichage du chemin
+            dernierChemin = chemin;
+            // Calcul du temps réel en suivant les arcs du graphe
+            int tempsTotal = 0;
+            for (int i = 0; i < chemin.Count - 1; i++)
+            {
+                var from = chemin[i];
+                var to = chemin[i + 1];
+
+                // Trouver le lien entre from et to
+                var lien = listeAdjacence[from].FirstOrDefault(l => l.Destination.Equals(to));
+
+                if (lien != null)
+                {
+                    
+                    tempsTotal += lien.Poids;
+                }
+                else
+                {
+                    Console.WriteLine($" Lien manquant entre {from} et {to} (temps ignoré)");
+                }
+            }
+            Console.WriteLine($"\nTemps total estimé (vérifié) : {tempsTotal} minutes");
+            return tempsTotal;
+
+        }
+        
         /// <summary>
         /// Applique l’algorithme de Bellman-Ford pour déterminer le chemin le plus court entre deux nœuds.
         /// Détecte aussi les cycles de poids négatif. Affiche le chemin et le temps total estimé.

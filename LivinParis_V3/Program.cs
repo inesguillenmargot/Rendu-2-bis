@@ -6,6 +6,7 @@ using LivinParisVF;
 using OfficeOpenXml;
 using System.Linq;
 using ClosedXML.Excel;
+using LivinParisVF;
 
 public class Program
 {
@@ -107,7 +108,7 @@ public class Program
         Console.Write("Ville : ");
         utilisateur.Ville = Console.ReadLine() ?? "";
 
-        string[] roles = { "Client", "Cuisinier", "Client + Cuisinier" };
+        string[] roles = { "Client", "Cuisinier", "Client + Cuisinier", "Administrateur" };
         int roleIndex = 0;
 
         while (true)
@@ -147,6 +148,7 @@ public class Program
                     utilisateur.Type = roles[roleIndex];
                     utilisateur.EstClient = utilisateur.Type.Contains("Client");
                     utilisateur.EstCuisinier = utilisateur.Type.Contains("Cuisinier");
+                    utilisateur.EstAdmin = utilisateur.Type.ToLower().Contains("admin");
                     break;
             }
             if (key == ConsoleKey.Enter)
@@ -156,6 +158,7 @@ public class Program
         }
         utilisateur.EstClient = utilisateur.Type.ToLower().Contains("client");
         utilisateur.EstCuisinier = utilisateur.Type.ToLower().Contains("cuisinier");
+        utilisateur.EstAdmin = utilisateur.Type.ToLower().Contains("admin");
         if (utilisateur.EstClient)
         {
             string[] clientTypes = { "Particulier", "Entreprise" };
@@ -267,6 +270,10 @@ public class Program
 
             Console.WriteLine($"\n✅ Connexion réussie ! Bienvenue {utilisateur.Prenom} {utilisateur.Nom}");
 
+            if (utilisateur.EstAdmin)
+            {
+                MenuAdmin();
+            }
             if (utilisateur.EstCuisinier && !utilisateur.EstClient)
             {
                 MenuCuisinier(utilisateurId);
@@ -387,6 +394,36 @@ public class Program
         }
         while (true);
     }
+    
+    static void MenuAdmin()
+    {
+        Console.Clear();
+        Console.WriteLine("=== Espace Administrateur ===\n");
+
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        // Moyenne des notes reçues par les clients (note donnée par les cuisiniers)
+        string queryNoteClient = "SELECT AVG(commande_noteclient) FROM Commande WHERE commande_noteclient IS NOT NULL";
+
+        try
+        {
+            using var cmdNote = new MySqlCommand(queryNoteClient, conn);
+            var moyenneNoteClient = cmdNote.ExecuteScalar();
+            Console.WriteLine($"📊 Moyenne des notes données aux clients : {Convert.ToDecimal(moyenneNoteClient):F2}/5");
+
+            decimal moyennePrix = Commande.CalculerMoyennePrixCommandes();
+            Console.WriteLine($"💰 Moyenne des prix des commandes : {moyennePrix:F2} €");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ Erreur lors du chargement des statistiques admin : " + ex.Message);
+        }
+
+        Console.WriteLine("\nAppuie sur une touche pour retourner au menu...");
+        Console.ReadKey();
+    }
+
     static void MenuCuisinier(int cuisinierId)
     {
         string[] options = {
@@ -462,6 +499,7 @@ public class Program
                         case 4: // Plats préparés par fréquence
                             var freq = PreparerPlat.RecupereLesPlatsParFrequence(cuisinierId);
                             Console.WriteLine("=== Plats par fréquence ===\n");
+                            //Console.WriteLine($"Nombre total de commandes livrées : {}\n");
                             foreach (var kv in freq)
                                 Console.WriteLine($"📦 {kv.Key.Nom} : {kv.Value} commandes");
                             break;
@@ -975,7 +1013,7 @@ public class Program
             var commandeMax = commandes.OrderByDescending(c => c.PrixTotal).First();
 
             Console.WriteLine($"Nombre total de commandes : {nombreCommandes}");
-            Console.WriteLine($"Moyenne des prix des commandes : {moyenne:F2} €");
+            Console.WriteLine($"Moyenne du prix de vos commandes : {moyenne:F2} €");
             Console.WriteLine($"Commande la plus chère : Commande #{commandeMax.CommandeId} avec un total de {commandeMax.PrixTotal:F2} €");
         }
 
@@ -1038,7 +1076,7 @@ public class Program
         }
 
         // Nombre de commandes sur la période donnée par l'utilisateur
-        string query2 = @"SELECT COUNT(*) AS NombreDeCommandes FROM Commande c JOIN ElementCommande ec ON c.commande_id = ec.commande_id WHERE c.utilisateur_id = @UtilisateurId   AND ec.commande_date BETWEEN @DateDebut AND @DateFin"; // Utilisation de la colonne commande_date dans ElementCommande
+        string query2 = @"SELECT COUNT(*) AS NombreDeCommandes FROM Commande c JOIN ElementCommande ec ON c.commande_id = ec.commandedetail_id WHERE c.utilisateur_id = @UtilisateurId   AND ec.commande_date_souhaitee BETWEEN @DateDebut AND @DateFin"; // Utilisation de la colonne commande_date dans ElementCommande
 
         using (var cmd2 = new MySqlCommand(query2, conn))
         {
@@ -1057,7 +1095,7 @@ public class Program
         {
             cmd3.Parameters.AddWithValue("@UtilisateurId", utilisateurId);
             var moyenneNotesCuisinier = cmd3.ExecuteScalar();
-            Console.WriteLine($"Moyenne des notes données par le client aux cuisiniers : {moyenneNotesCuisinier}");
+            Console.WriteLine($"Moyenne des notes que vous avez données aux cuisiniers : {moyenneNotesCuisinier}");
         }
 
         // Moyenne des notes données par les cuisiniers au client
@@ -1067,7 +1105,7 @@ public class Program
         {
             cmd4.Parameters.AddWithValue("@UtilisateurId", utilisateurId);
             var moyenneNotesClient = cmd4.ExecuteScalar();
-            Console.WriteLine($"Moyenne des notes données par les cuisiniers au client : {moyenneNotesClient}");
+            Console.WriteLine($"Moyenne des notes données par les cuisiniers pour vous : {moyenneNotesClient}");
         }
 
         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
@@ -1363,11 +1401,6 @@ public class Program
                 }
                 Console.WriteLine("❌ Sélection invalide. Réessayez.");
             }
-        /*}
-        else
-        {
-            Console.WriteLine("Un seul élément trouvé. Il est sélectionné automatiquement.");
-        }*/
         
         // Élement sélectionné
         ElementCommande elementAtraiter = elements[indexSelectionne];
@@ -1376,12 +1409,18 @@ public class Program
         elementAtraiter.DateDebutLivraison = DateTime.Now;
         elementAtraiter.Statut = ElementCommande.STATUT_EN_COURS_LIVRAISON;
         
+        string cheminExcelgraphe = FichierUtilise.GetCheminExcel();
+        var graphe = ChargementGraphe.ChargerGrapheDepuisExcel(cheminExcelgraphe);
+        
         // Récupérer la station de métro du cuisinier
         string stationMetroCuisinier = Utilisateur.RecupererParId(cuisinierId).MetroProche;
+        var stationDepart = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => s.Nom.ToLower().Contains(stationMetroCuisinier));
 
         // Récupérer la station de métro du client à partir de l'élément de la commande
         var elementCommande = ElementCommande.RecupererElementCommandeParCommandeId(commandeId).FirstOrDefault();
         string stationMetroClient = elementCommande?.StationMetro ?? ""; // Si aucun élément, on retourne une chaîne vide
+        var stationArrivee = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => s.Nom.ToLower().Contains(stationMetroClient));
+
 
         if (string.IsNullOrEmpty(stationMetroClient))
         {
@@ -1389,12 +1428,13 @@ public class Program
             return;
         }
 
-        int dureeLivraison = 2; // A modifier avec la durée metro cuisinier / metro cible
-        
+        int dureeLivraison = 2;
+        //int dureeLivraison = graphe.Dijkstra(stationDepart, stationArrivee);
+
         elementAtraiter.DureeLivraison = dureeLivraison;
         elementAtraiter.MettreAJourLivraison();
 
-        Console.WriteLine($"\n✅ Livraison de l’élément #{elementAtraiter.CommandeDetailId} lancée à {elementAtraiter.DateDebutLivraison:T} et arrive dans {elementAtraiter.DureeLivraison}.");
+        Console.WriteLine($"\n✅ Livraison de l’élément #{elementAtraiter.CommandeDetailId} lancée à {elementAtraiter.DateDebutLivraison:T} et arrive dans {elementAtraiter.DureeLivraison} min.");
         Console.WriteLine("Merci d'aller noter le client !");
 
         Console.WriteLine("\nAppuyez sur une touche pour continuer...");

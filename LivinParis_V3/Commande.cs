@@ -425,4 +425,29 @@ public class Commande
         conn.Open();
         cmd.ExecuteNonQuery();
     }
+    public static decimal CalculerMoyennePrixCommandes()
+    {
+        decimal moyennePrix = 0;
+
+        using var conn = new MySqlConnection(connectionString);
+        string query = "SELECT AVG(commande_prixtotal) FROM Commande WHERE commande_prixtotal IS NOT NULL";
+
+        try
+        {
+            conn.Open();
+            using var cmd = new MySqlCommand(query, conn);
+            var result = cmd.ExecuteScalar();
+
+            if (result != DBNull.Value && result != null)
+            {
+                moyennePrix = Convert.ToDecimal(result);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ Erreur lors du calcul de la moyenne des prix : " + ex.Message);
+        }
+
+        return moyennePrix;
+    }
 }

@@ -8,6 +8,7 @@ public class Utilisateur
     public int UtilisateurId { get; set; }
     public string Nom { get; set; } = string.Empty;
     public string Prenom { get; set; } = string.Empty;
+    public bool EstAdmin {get; set;}
     public bool EstClient { get; set; }
     public bool EstParticulier { get; set; }
     public string EntrepriseNom { get; set; } = string.Empty;
@@ -32,12 +33,19 @@ public class Utilisateur
     /// <returns></returns>
     public int Ajouter()
     {
+        // Si l'utilisateur est client ou cuisinier --> pas être admin
+        if (EstClient || EstCuisinier)
+        {
+            EstAdmin = false;
+        }
+        
         using var conn = new MySqlConnection(connectionString);
-        string query = @"INSERT INTO Utilisateur (utilisateur_nom, utilisateur_prenom, utilisateur_est_client, utilisateur_est_particulier, entreprise_nom, entreprise_nom_referent, utilisateur_est_cuisinier, utilisateur_telephone, utilisateur_email, utilisateur_mdp, utilisateur_type, utilisateur_metroproche, utilisateur_rue, utilisateur_num_rue, utilisateur_codepostal, utilisateur_ville) VALUES (@Nom, @Prenom, @EstClient, @EstParticulier, @EntrepriseNom, @EntrepriseReferent,  @EstCuisinier, @Telephone, @Email, @Mdp, @Type, @Metro, @Rue, @NumRue, @CodePostal, @Ville); SELECT LAST_INSERT_ID();";
+        string query = @"INSERT INTO Utilisateur (utilisateur_nom, utilisateur_prenom,utilisateur_est_admin, utilisateur_est_client, utilisateur_est_particulier, entreprise_nom, entreprise_nom_referent, utilisateur_est_cuisinier, utilisateur_telephone, utilisateur_email, utilisateur_mdp, utilisateur_type, utilisateur_metroproche, utilisateur_rue, utilisateur_num_rue, utilisateur_codepostal, utilisateur_ville) VALUES (@Nom, @Prenom, @EstAdmin, @EstClient, @EstParticulier, @EntrepriseNom, @EntrepriseReferent,  @EstCuisinier, @Telephone, @Email, @Mdp, @Type, @Metro, @Rue, @NumRue, @CodePostal, @Ville); SELECT LAST_INSERT_ID();";
 
         using var cmd = new MySqlCommand(query, conn);
         cmd.Parameters.AddWithValue("@Nom", Nom);
         cmd.Parameters.AddWithValue("@Prenom", Prenom);
+        cmd.Parameters.AddWithValue("@EstAdmin", EstAdmin);
         cmd.Parameters.AddWithValue("@EstClient", EstClient);
         cmd.Parameters.AddWithValue("@EstParticulier", EstParticulier);
         cmd.Parameters.AddWithValue("@EntrepriseNom", EntrepriseNom);
@@ -140,6 +148,7 @@ public class Utilisateur
                 NumRue = reader.GetInt32("utilisateur_num_rue"),
                 CodePostal = reader.GetInt32("utilisateur_codepostal"),
                 Ville = reader.GetString("utilisateur_ville"),
+                EstAdmin = !reader.IsDBNull(reader.GetOrdinal("utilisateur_est_admin")) && reader.GetBoolean("utilisateur_est_admin"),
                 EstClient = reader.GetBoolean("utilisateur_est_client"),
                 EstCuisinier = reader.GetBoolean("utilisateur_est_cuisinier"),
                 EstParticulier = reader.GetBoolean("utilisateur_est_particulier"),
