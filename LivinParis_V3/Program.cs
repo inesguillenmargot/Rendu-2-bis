@@ -395,34 +395,81 @@ public class Program
         while (true);
     }
     
-    static void MenuAdmin()
+   static void MenuAdmin()
+{
+    while (true)
     {
         Console.Clear();
         Console.WriteLine("=== Espace Administrateur ===\n");
 
-        using var conn = new MySqlConnection(connectionString);
-        conn.Open();
+        string[] options = {
+            "Voir statistiques globales",
+            "Filtrer et afficher les clients",
+            "Voir meilleur & pire cuisinier",
+            "Voir meilleur & pire client",
+            "Voir moyenne des prix des commandes par client",
+            "Afficher toutes les commandes d'une période",
+            "⬅ Retour"
+        };
 
-        // Moyenne des notes reçues par les clients (note donnée par les cuisiniers)
-        string queryNoteClient = "SELECT AVG(commande_noteclient) FROM Commande WHERE commande_noteclient IS NOT NULL";
+        int selected = 0;
 
-        try
+        // Menu déroulant Admin
+        while (true)
         {
-            using var cmdNote = new MySqlCommand(queryNoteClient, conn);
-            var moyenneNoteClient = cmdNote.ExecuteScalar();
-            Console.WriteLine($"📊 Moyenne des notes données aux clients : {Convert.ToDecimal(moyenneNoteClient):F2}/5");
+            Console.Clear();
+            Console.WriteLine("=== Menu Administrateur ===\n");
 
-            decimal moyennePrix = Commande.CalculerMoyennePrixCommandes();
-            Console.WriteLine($"💰 Moyenne des prix des commandes : {moyennePrix:F2} €");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("❌ Erreur lors du chargement des statistiques admin : " + ex.Message);
-        }
+            for (int i = 0; i < options.Length; i++)
+            {
+                Console.Write(i == selected ? "👉 " : "   ");
+                Console.ForegroundColor = (i == selected) ? ConsoleColor.Cyan : ConsoleColor.Gray;
+                Console.WriteLine(options[i]);
+            }
+            Console.ResetColor();
 
-        Console.WriteLine("\nAppuie sur une touche pour retourner au menu...");
-        Console.ReadKey();
+            ConsoleKey key = Console.ReadKey(true).Key;
+            switch (key)
+            {
+                case ConsoleKey.UpArrow:
+                    selected = (selected - 1 + options.Length) % options.Length;
+                    break;
+                case ConsoleKey.DownArrow:
+                    selected = (selected + 1) % options.Length;
+                    break;
+                case ConsoleKey.Enter:
+                    Console.Clear();
+                    switch (selected)
+                    {
+                        case 0: // Statistiques globales
+                            AfficherStatsGlobales();
+                            break;
+                        case 1: // Filtrer clients
+                            MenuFiltrerClients();
+                            break;
+                        case 2: // Meilleur et pire cuisinier
+                            AfficherMeilleurPireCuisinier();
+                            break;
+                        case 3: // Meilleur et pire client
+                            AfficherMeilleurPireClient();
+                            break;
+                        case 4: // Moyenne des prix par client
+                            AfficherMoyennePrixCommandesParClient();
+                            break;
+                        case 5: // Commandes sur une période
+                            AfficherCommandesParPeriode();
+                            break;
+                        case 6: // Retour
+                            return;
+                    }
+                    Console.WriteLine("\nAppuie sur une touche pour continuer...");
+                    Console.ReadKey();
+                    break;
+            }
+        }
     }
+}
+
 
     static void MenuCuisinier(int cuisinierId)
     {
@@ -431,7 +478,7 @@ public class Program
             "Ajouter un plat du jour",
             "Voir tous vos plats",
             "Voir le plat du jour",
-            "Voir vos plats réalisés par fréquence",
+            "Voir vos statistiques",
             "Voir vos clients servis",
             "Modifier les données du cuisinier",
             "Supprimer mon compte",
@@ -495,16 +542,94 @@ public class Program
                             else
                                 Console.WriteLine("Aucun plat du jour trouvé pour aujourd'hui.");
                             break;
+                        
+                        case 4: // Statistiques du cuisinier
+                            string[] statsOptions = {
+                                "Voir vos plats réalisés par fréquence",
+                                "Voir les avis des clients",
+                                "Voir la meilleure et la pire note reçue",
+                                "Voir la moyenne des prix de vos commandes",
+                                "⬅ Retour"
+                            };
+                            int selectedStats = 0;
 
-                        case 4: // Plats préparés par fréquence
-                            var freq = PreparerPlat.RecupereLesPlatsParFrequence(cuisinierId);
-                            var client = PreparerPlat.RecupereClientsServis(cuisinierId);
-                            Console.WriteLine("=== Plats par fréquence ===\n");
-                            Console.WriteLine($" Nombre total de clients servis : {client.Count}\n");
-                            foreach (var kv in freq)
-                                Console.WriteLine($"📦 {kv.Key.Nom} : {kv.Value} commandes");
+                            while (true)
+                            {
+                                Console.Clear();
+                                Console.WriteLine("=== Statistiques du Cuisinier ===\n");
+
+                                for (int i = 0; i < statsOptions.Length; i++)
+                                {
+                                    Console.Write(i == selectedStats ? "👉 " : "   ");
+                                    Console.ForegroundColor = (i == selectedStats) ? ConsoleColor.Cyan : ConsoleColor.Gray;
+                                    Console.WriteLine(statsOptions[i]);
+                                }
+                                Console.ResetColor();
+
+                                ConsoleKey keyStats = Console.ReadKey(true).Key;
+                                switch (keyStats)
+                                {
+                                    case ConsoleKey.UpArrow:
+                                        selectedStats = (selectedStats - 1 + statsOptions.Length) % statsOptions.Length;
+                                        break;
+                                    case ConsoleKey.DownArrow:
+                                        selectedStats = (selectedStats + 1) % statsOptions.Length;
+                                        break;
+                                    case ConsoleKey.Enter:
+                                        Console.Clear();
+                                        switch (selectedStats)
+                                        {
+                                            case 0: // Plats par fréquence
+                                                var freq = PreparerPlat.RecupereLesPlatsParFrequence(cuisinierId);
+                                                var client = PreparerPlat.RecupereClientsServis(cuisinierId);
+                                                Console.WriteLine("=== Plats réalisés par fréquence ===\n");
+                                                Console.WriteLine($" Nombre total de clients servis : {client.Count}\n");
+                                                foreach (var kv in freq)
+                                                    Console.WriteLine($"📦 {kv.Key.Nom} : {kv.Value} commandes");
+                                                break;
+
+                                            case 1: // Avis des clients
+                                                var avisClients = Commande.RecupererAvisClientsPourCuisinier(cuisinierId);
+                                                Console.WriteLine("=== Avis des clients ===\n");
+                                                if (avisClients.Count == 0)
+                                                    Console.WriteLine("Aucun avis disponible.");
+                                                else
+                                                    foreach (var avis in avisClients)
+                                                        Console.WriteLine($"📝 {avis}");
+                                                break;
+
+                                            case 2: // Meilleure et pire note
+                                                var notes = Commande.RecupererNotesClientsPourCuisinier(cuisinierId);
+                                                Console.WriteLine("=== Notes reçues ===\n");
+                                                if (notes.Count == 0)
+                                                {
+                                                    Console.WriteLine("Aucune note disponible.");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine($"⭐ Meilleure note : {notes.Max()}/5");
+                                                    Console.WriteLine($"⚡ Pire note : {notes.Min()}/5");
+                                                }
+                                                break;
+
+                                            case 3: // Moyenne des prix des commandes
+                                                var moyennePrix = Commande.CalculerMoyennePrixCommandesParCuisinier(cuisinierId);
+                                                Console.WriteLine("=== Moyenne des prix des commandes ===\n");
+                                                Console.WriteLine($"💰 Moyenne : {moyennePrix:F2} €");
+                                                break;
+
+                                            case 4: // Retour
+                                                goto FinSousMenuStats;
+                                        }
+                                        Console.WriteLine("\nAppuie sur une touche pour continuer...");
+                                        Console.ReadKey();
+                                        break;
+                                }
+                            }
+                        FinSousMenuStats:
                             break;
 
+                        
                         case 5: // Liste clients servis
                             var clients = PreparerPlat.RecupereClientsServis(cuisinierId);
                             Console.WriteLine("=== Clients servis ===\n");
@@ -1501,4 +1626,227 @@ public class Program
             return Path.Combine(basePath, "Graph", "MetroParis (4).xlsx");
         }
     }
+    
+    static void AfficherStatsGlobales()
+    {
+        Console.Clear();
+        Console.WriteLine("=== Statistiques Globales ===\n");
+
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        // Moyenne des notes reçues par les clients
+        string queryNoteClient = "SELECT AVG(commande_noteclient) FROM Commande WHERE commande_noteclient IS NOT NULL";
+
+        try
+        {
+            using var cmdNote = new MySqlCommand(queryNoteClient, conn);
+            var moyenneNoteClient = cmdNote.ExecuteScalar();
+            Console.WriteLine($"📊 Moyenne des notes données aux clients : {Convert.ToDecimal(moyenneNoteClient):F2}/5");
+
+            decimal moyennePrix = Commande.CalculerMoyennePrixCommandes();
+            Console.WriteLine($"💰 Moyenne des prix des commandes : {moyennePrix:F2} €");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ Erreur lors du chargement des statistiques : " + ex.Message);
+        }
+
+        Console.WriteLine("\nAppuie sur une touche pour continuer...");
+        Console.ReadKey();
+    }
+
+    static void MenuFiltrerClients()
+    {
+        Console.Clear();
+        Console.WriteLine("=== Filtrer et Afficher les Clients ===\n");
+
+        // Demander les filtres
+        Console.WriteLine("Souhaites-tu trier par ordre alphabétique (nom de famille) ? (o/n) : ");
+        bool trierAlpha = Console.ReadLine()?.Trim().ToLower() == "o";
+
+        Console.WriteLine("Souhaites-tu trier par rue ? (o/n) : ");
+        bool trierRue = Console.ReadLine()?.Trim().ToLower() == "o";
+
+        Console.WriteLine("Souhaites-tu trier par montant cumulé des achats ? (o/n) : ");
+        bool trierMontant = Console.ReadLine()?.Trim().ToLower() == "o";
+
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = @"SELECT u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue,IFNULL(SUM(c.commande_prixtotal), 0) AS montant_total FROM Utilisateur u LEFT JOIN Commande c ON u.utilisateur_id = c.utilisateur_id WHERE u.utilisateur_type = 'client' GROUP BY u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue";
+
+        var clients = new List<(string Nom, string Prenom, string Adresse, decimal MontantTotal)>();
+
+        using var cmd = new MySqlCommand(query, conn);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            clients.Add((
+                Nom: reader.GetString("utilisateur_nom"),
+                Prenom: reader.GetString("utilisateur_prenom"),
+                Adresse: reader.GetString("utilisateur_rue"),
+                MontantTotal: reader.GetDecimal("montant_total")
+            ));
+        }
+
+        // Tri dynamique
+        if (trierAlpha)
+            clients = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ToList();
+
+        if (trierRue)
+            clients = clients.OrderBy(c => c.Adresse).ToList();
+
+        if (trierMontant)
+            clients = clients.OrderByDescending(c => c.MontantTotal).ToList();
+
+        Console.Clear();
+        Console.WriteLine("=== Résultats des Filtres ===\n");
+
+        foreach (var client in clients)
+        {
+            Console.WriteLine($"👤 {client.Prenom} {client.Nom}");
+            Console.WriteLine($"🏠 Rue : {client.Adresse}");
+            Console.WriteLine($"💸 Achats cumulés : {client.MontantTotal:F2} €\n");
+        }
+
+        if (clients.Count == 0)
+        {
+            Console.WriteLine("Aucun client trouvé.");
+        }
+
+        Console.WriteLine("\nAppuie sur une touche pour revenir au menu...");
+        Console.ReadKey();
+    }
+
+    static void AfficherMeilleurPireCuisinier()
+    {
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = @"SELECT utilisateur_id, AVG(commande_notecuisinier) as moyenne  FROM Commande WHERE commande_notecuisinier IS NOT NULL GROUP BY utilisateur_id ORDER BY moyenne DESC";
+
+        using var cmd = new MySqlCommand(query, conn);
+        using var reader = cmd.ExecuteReader();
+
+        var meilleurs = new List<(int, decimal)>();
+
+        while (reader.Read())
+        {
+            int id = reader.GetInt32(0);
+            decimal moyenne = reader.GetDecimal(1);
+            meilleurs.Add((id, moyenne));
+        }
+
+        if (meilleurs.Count == 0)
+        {
+            Console.WriteLine("Aucun cuisinier noté trouvé.");
+            return;
+        }
+
+        var meilleur = meilleurs.First();
+        var pire = meilleurs.Last();
+
+        Console.WriteLine($"🏆 Meilleur cuisinier : ID {meilleur.Item1} avec {meilleur.Item2:F2}/5");
+        Console.WriteLine($"Pire cuisinier : ID {pire.Item1} avec {pire.Item2:F2}/5");
+    }
+
+    static void AfficherMeilleurPireClient()
+    {
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = @" SELECT utilisateur_id, AVG(commande_noteclient) as moyenne FROM Commande WHERE commande_noteclient IS NOT NULL GROUP BY utilisateur_id ORDER BY moyenne DESC";
+
+        using var cmd = new MySqlCommand(query, conn);
+        using var reader = cmd.ExecuteReader();
+
+        var meilleurs = new List<(int, decimal)>();
+
+        while (reader.Read())
+        {
+            int id = reader.GetInt32(0);
+            decimal moyenne = reader.GetDecimal(1);
+            meilleurs.Add((id, moyenne));
+        }
+
+        if (meilleurs.Count == 0)
+        {
+            Console.WriteLine("Aucun client noté trouvé.");
+            return;
+        }
+
+        var meilleur = meilleurs.First();
+        var pire = meilleurs.Last();
+
+        Console.WriteLine($"🏅 Meilleur client : ID {meilleur.Item1} avec {meilleur.Item2:F2}/5");
+        Console.WriteLine($"Pire client : ID {pire.Item1} avec {pire.Item2:F2}/5");
+    }
+
+    static void AfficherMoyennePrixCommandesParClient()
+    {
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = @"SELECT utilisateur_id, AVG(commande_prixtotal) as moyennePrix FROM Commande WHERE commande_prixtotal IS NOT NULL GROUP BY utilisateur_id ORDER BY moyennePrix DESC";
+
+        using var cmd = new MySqlCommand(query, conn);
+        using var reader = cmd.ExecuteReader();
+
+        Console.WriteLine("=== Moyenne des prix de commandes par client ===\n");
+        while (reader.Read())
+        {
+            int id = reader.GetInt32(0);
+            decimal moyenne = reader.GetDecimal(1);
+            Console.WriteLine($"👤 Client ID {id} : {moyenne:F2}€ de moyenne");
+        }
+    }
+    
+    static void AfficherCommandesParPeriode()
+    {
+        Console.WriteLine("Entrez la date de début (format yyyy-MM-dd) :");
+        if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateDebut))
+        {
+            Console.WriteLine("Format de date invalide.");
+            return;
+        }
+
+        Console.WriteLine("Entrez la date de fin (format yyyy-MM-dd) :");
+        if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateFin))
+        {
+            Console.WriteLine("Format de date invalide.");
+            return;
+        }
+
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = @"SELECT c.commande_id, c.utilisateur_id, e.commande_date_souhaitee, c.commande_prixtotal FROM ElementCommande e JOIN Commande c ON e.commande_id = c.commande_id WHERE e.commande_date_souhaitee BETWEEN @DateDebut AND @DateFin ORDER BY e.commande_date_souhaitee";
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@DateDebut", dateDebut);
+        cmd.Parameters.AddWithValue("@DateFin", dateFin);
+
+        using var reader = cmd.ExecuteReader();
+
+        var commandes = new List<(int commandeId, int clientId, DateTime date, decimal prix)>();
+
+        while (reader.Read())
+        {
+            commandes.Add((
+                reader.GetInt32(0),
+                reader.GetInt32(1),
+                reader.GetDateTime(2),
+                reader.GetDecimal(3)
+            ));
+        }
+
+        Console.WriteLine($"\nNombre total de commandes passées : {commandes.Count}\n");
+
+        foreach (var c in commandes)
+        {
+            Console.WriteLine($"📦 Commande {c.commandeId} | Client {c.clientId} | Date : {c.date:dd/MM/yyyy} | Total : {c.prix:F2}€");
+        }
+    }
+
 }

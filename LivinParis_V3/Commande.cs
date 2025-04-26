@@ -450,4 +450,59 @@ public class Commande
 
         return moyennePrix;
     }
+    public static List<string> RecupererAvisClientsPourCuisinier(int cuisinierId)
+    {
+        var avisList = new List<string>();
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = @"SELECT commande_avisClient FROM Commande WHERE utilisateur_id = @CuisinierId AND commande_avisClient IS NOT NULL AND commande_avisClient != ''";
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            avisList.Add(reader.GetString(0));
+        }
+        return avisList;
+    }
+    
+    public static List<decimal> RecupererNotesClientsPourCuisinier(int cuisinierId)
+    {
+        var notesList = new List<decimal>();
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = @" SELECT commande_notecuisinier FROM Commande WHERE utilisateur_id = @CuisinierId AND commande_notecuisinier IS NOT NULL";
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            notesList.Add(reader.GetDecimal(0));
+        }
+
+        return notesList;
+    }
+    
+    public static decimal CalculerMoyennePrixCommandesParCuisinier(int cuisinierId)
+    {
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = @"SELECT AVG(commande_prixtotal) FROM Commande WHERE utilisateur_id = @CuisinierId";
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
+
+        var result = cmd.ExecuteScalar();
+        return result != DBNull.Value ? Convert.ToDecimal(result) : 0m;
+    }
+
+
+
 }
