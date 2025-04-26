@@ -17,7 +17,7 @@ public class Program
         string cheminExcel = FichierUtilise.GetCheminExcel();
         var graphe = ChargementGraphe.ChargerGrapheDepuisExcel(cheminExcel);
         var visualiseur = new GrapheVisualizer<Station>(graphe);
-        visualiseur.DessinerGraphe("graphe_paris.png");
+        visualiseur.DessinerGraphe("graphe_paris.png"); 
         
         Console.OutputEncoding = Encoding.UTF8;
         Console.CursorVisible = false;
