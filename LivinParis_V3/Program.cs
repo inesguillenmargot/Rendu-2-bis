@@ -498,8 +498,9 @@ public class Program
 
                         case 4: // Plats préparés par fréquence
                             var freq = PreparerPlat.RecupereLesPlatsParFrequence(cuisinierId);
+                            var client = PreparerPlat.RecupereClientsServis(cuisinierId);
                             Console.WriteLine("=== Plats par fréquence ===\n");
-                            //Console.WriteLine($"Nombre total de commandes livrées : {}\n");
+                            Console.WriteLine($" Nombre total de clients servis : {client.Count}\n");
                             foreach (var kv in freq)
                                 Console.WriteLine($"📦 {kv.Key.Nom} : {kv.Value} commandes");
                             break;

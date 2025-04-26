@@ -567,6 +567,61 @@ namespace LivinParisVF
                 }
             }
         }
+        
+        /// <summary>
+        /// Applique l'algorithme de Welsh-Powell pour colorier le graphe.
+        /// Associe à chaque sommet une couleur (représentée par un entier) de manière à ce que deux sommets adjacents n'aient jamais la même couleur.
+        /// </summary>
+        /// <returns>
+        /// Un dictionnaire associe chaque sommet à un entier qui représente sa couleur et la valeur correspond au numéro de couleur utilisé pour ce sommet.
+        /// </returns>
+        public Dictionary<T, int> ColorierGrapheWelshPowell()
+        {
+    
+            // Ordonner les sommets par degré décroissant
+            var sommets = listeAdjacence.Keys
+                .OrderByDescending(noeud => listeAdjacence[noeud].Count)
+                .ToList();
+
+            var couleurs = new Dictionary<T, int>();
+            int couleurActuelle = 1;
+
+            foreach (var sommet in sommets)
+            {
+                if (couleurs.ContainsKey(sommet)) continue;
+
+                couleurs[sommet] = couleurActuelle;
+
+                foreach (var autre in sommets)
+                {
+                    if (couleurs.ContainsKey(autre)) continue;
+
+                    // Vérifie si aucun voisin de autre n’a la couleur actuelle
+                    bool peutColorier = !listeAdjacence[autre]
+                        .Any(voisin => couleurs.TryGetValue(voisin.Destination, out int c) && c == couleurActuelle);
+
+                    if (peutColorier)
+                        couleurs[autre] = couleurActuelle;
+                }
+
+                couleurActuelle++;
+            }
+
+            Console.WriteLine($"\nNombre chromatique (minimum de couleurs nécessaires) : {couleurActuelle}");
+
+            // Affichage des groupes indépendants
+            for (int c = 0; c < couleurActuelle; c++)
+            {
+                Console.WriteLine($"\nGroupe de couleur {c} :");
+                foreach (var pair in couleurs)
+                {
+                    if (pair.Value == c)
+                        Console.WriteLine($" - {pair.Key}");
+                }
+            }
+
+            return couleurs;
+        }
     }
 }
 

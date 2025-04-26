@@ -9,12 +9,14 @@ namespace LivinParisVF
         private int _width = 1200;
         private int _height = 1000;
         private Dictionary<T, SKPoint> _positions;
+        private Dictionary<T, int> _couleurs;
 
-        public GrapheVisualizer(Graphe<T> graphe)
+        public GrapheVisualizer(Graphe<T> graphe, Dictionary<T, int> couleurs = null)
         {
             _graphe = graphe;
             _positions = new Dictionary<T, SKPoint>();
             CalculerPositionsParCoordonnees();
+            _couleurs = couleurs;
         }
 
         private void CalculerPositionsParCoordonnees()
@@ -47,6 +49,24 @@ namespace LivinParisVF
             }
         }
 
+        /// <summary>
+        /// Liste de couleurs distinctes utilisées pour la coloration des sommets d'un graphe.
+        /// </summary>
+        private static readonly List<SKColor> CouleursDistinctes = new List<SKColor>
+        {
+            SKColors.Red,
+            SKColors.Blue,
+            //SKColors.Yellow, on l'a enlevee car pas assez visible sur le dessin
+            SKColors.Green,
+            SKColors.Purple,
+            SKColors.Orange,
+            SKColors.Brown,
+            SKColors.Pink,
+            SKColors.Teal,
+            SKColors.Cyan
+    
+        };
+        
         public void DessinerGraphe(string filePath)
         {
             using var bitmap = new SKBitmap(_width, _height);
@@ -101,9 +121,33 @@ namespace LivinParisVF
                         var id1 = (noeud.Key as Station)?.Id ?? -1;
                         var id2 = (voisinId as Station)?.Id ?? -1;
 
-                        var paint = liensChemin.Contains((id1, id2))
-                            ? new SKPaint { Color = SKColors.Red, StrokeWidth = 4, IsAntialias = true }
-                            : paintArrete;
+                        //var paint = liensChemin.Contains((id1, id2))
+                            //? new SKPaint { Color = SKColors.Red, StrokeWidth = 4, IsAntialias = true }
+                            //: paintArrete;
+
+                        //canvas.DrawLine(p1, p2, paint);
+                        
+                        SKPaint paint;
+                        if (liensChemin.Contains((id1, id2)))
+                        {
+                            paint = new SKPaint { Color = SKColors.Red, StrokeWidth = 4, IsAntialias = true };
+                        }
+                        else
+                        {
+                            // Utiliser la couleur de la ligne de la station de départ
+                            if (noeud.Key is Station stationDepart)
+                            {
+                                string ligneDepart = stationDepart.Lignes[0].Trim().ToLower();
+                                if (ligneDepart.StartsWith("ligne ")) ligneDepart = ligneDepart.Substring(6);
+                                var couleurLigne = couleursLignes.TryGetValue(ligneDepart, out var c) ? c : SKColors.Gray;
+
+                                paint = new SKPaint { Color = couleurLigne, StrokeWidth = 1.5f, IsAntialias = true };
+                            }
+                            else
+                            {
+                                paint = paintArrete; // fallback noir si jamais
+                            }
+                        }
 
                         canvas.DrawLine(p1, p2, paint);
                     }
@@ -117,9 +161,26 @@ namespace LivinParisVF
                     string ligne = station.Lignes[0].Trim().ToLower();
                     if (ligne.StartsWith("ligne ")) ligne = ligne.Substring(6);
 
-                    SKColor couleur = couleursLignes.TryGetValue(ligne, out var c) ? c : SKColors.Gray;
-                    var paintNoeud = new SKPaint { Color = couleur, IsAntialias = true };
+                    //SKColor couleur = couleursLignes.TryGetValue(ligne, out var c) ? c : SKColors.Gray;
+                    //var paintNoeud = new SKPaint { Color = couleur, IsAntialias = true };
 
+                    //canvas.DrawCircle(pos, 6, paintNoeud);
+                    //canvas.DrawText(station.Id.ToString(), pos.X, pos.Y + 5, paintTexte);
+                    SKColor couleur;
+                    
+                    if (_couleurs != null && _couleurs.TryGetValue(id, out int groupe))
+                    {
+                        couleur = CouleursDistinctes[groupe % CouleursDistinctes.Count];
+                    }
+                    else
+                    {
+                        // fallback sur la ligne si pas de coloration passée
+                        string ligneStation = station.Lignes[0].Trim().ToLower();
+                        if (ligneStation.StartsWith("ligne ")) ligneStation = ligneStation.Substring(6);
+                        couleur = couleursLignes.TryGetValue(ligneStation, out var c) ? c : SKColors.Gray;
+                    }
+                    var paintNoeud = new SKPaint { Color = couleur, IsAntialias = true };
+                    
                     canvas.DrawCircle(pos, 6, paintNoeud);
                     canvas.DrawText(station.Id.ToString(), pos.X, pos.Y + 5, paintTexte);
                 }
