@@ -1665,20 +1665,53 @@ public class Program
         Console.WriteLine("Souhaites-tu trier par ordre alphabétique (nom de famille) ? (o/n) : ");
         bool trierAlpha = Console.ReadLine()?.Trim().ToLower() == "o";
 
-        Console.WriteLine("Souhaites-tu trier par rue ? (o/n) : ");
+        Console.WriteLine("Souhaites-tu trier par rue (adresse complète)? (o/n) : ");
         bool trierRue = Console.ReadLine()?.Trim().ToLower() == "o";
 
         Console.WriteLine("Souhaites-tu trier par montant cumulé des achats ? (o/n) : ");
         bool trierMontant = Console.ReadLine()?.Trim().ToLower() == "o";
 
+        string critereTri = "";
+        
+        //je trie en commencant par le nom (si selectionné) puis ensuite la rue (si selctioné) et enfin par le montant (si sélectionné)
+        if (trierAlpha)
+        {
+            critereTri = "utilisateur_nom,utilisateur_prenom";
+        }
+
+        if (trierRue)
+        {
+            if (critereTri == "")
+            {
+                critereTri = "utilisateur_rue";
+            }
+            else
+            {
+                critereTri = critereTri + ", utilisateur_rue";
+            }
+        }
+
+        if (trierMontant)
+        {
+            if (critereTri == "")
+            {
+                critereTri = "montant_total";
+            }
+            else
+            {
+                critereTri = critereTri + ", montant_total";
+            }
+        }
+        
         using var conn = new MySqlConnection(connectionString);
         conn.Open();
 
-        string query = @"SELECT u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue,IFNULL(SUM(c.commande_prixtotal), 0) AS montant_total FROM Utilisateur u LEFT JOIN Commande c ON u.utilisateur_id = c.utilisateur_id WHERE u.utilisateur_type = 'client' GROUP BY u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue";
+        string query = @"SELECT u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue,IFNULL(SUM(c.commande_prixtotal), 0) AS montant_total FROM Utilisateur u LEFT JOIN Commande c ON u.utilisateur_id = c.utilisateur_id WHERE u.utilisateur_type = 'client' GROUP BY u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue ORDER BY @Tri";
 
         var clients = new List<(string Nom, string Prenom, string Adresse, decimal MontantTotal)>();
 
         using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@Tri", critereTri);
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
@@ -1690,26 +1723,50 @@ public class Program
             ));
         }
 
-        // Tri dynamique
+        Console.Clear();
+
+        var result = new List<(string Nom, string Prenom, string Adresse, decimal MontantTotal)>();
         if (trierAlpha)
-            clients = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ToList();
+        {
+            result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ToList();
+        }
 
         if (trierRue)
-            clients = clients.OrderBy(c => c.Adresse).ToList();
+        {
+            if (trierAlpha == false)
+            {
+                result = clients.OrderBy(c => c.Adresse).ToList();
+            }
+            else
+            {
+                result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ThenBy(c => c.Adresse).ToList();
+            }
+        }
 
         if (trierMontant)
-            clients = clients.OrderByDescending(c => c.MontantTotal).ToList();
+        {
+            if (trierRue == false && trierAlpha == false)
+            {
+                result = clients.OrderByDescending(c => c.MontantTotal).ToList();
+            }
+            else if (trierRue == false && trierAlpha)
+            {
+                result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ThenByDescending(c => c.MontantTotal).ToList();
+            }
+            else
+            {
+                result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ThenBy(c => c.Adresse).ThenByDescending(c => c.MontantTotal).ToList();
+            }
+        }
 
-        Console.Clear();
         Console.WriteLine("=== Résultats des Filtres ===\n");
 
-        foreach (var client in clients)
+        foreach (var client in result)
         {
-            Console.WriteLine($"👤 {client.Prenom} {client.Nom}");
+            Console.WriteLine($"👤 {client.Nom} {client.Prenom}");
             Console.WriteLine($"🏠 Rue : {client.Adresse}");
             Console.WriteLine($"💸 Achats cumulés : {client.MontantTotal:F2} €\n");
         }
-
         if (clients.Count == 0)
         {
             Console.WriteLine("Aucun client trouvé.");

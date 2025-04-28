@@ -456,7 +456,7 @@ public class Commande
         using var conn = new MySqlConnection(connectionString);
         conn.Open();
 
-        string query = @"SELECT commande_avisClient FROM Commande WHERE utilisateur_id = @CuisinierId AND commande_avisClient IS NOT NULL AND commande_avisClient != ''";
+        string query = @"SELECT DISTINCT c.commande_avisClient FROM Commande c JOIN ElementCommande ec ON c.commande_id = ec.commande_id JOIN PlatPropose p ON ec.plat_id = p.plat_id JOIN PreparerPlat pp ON p.plat_id = pp.plat_id WHERE pp.utilisateur_id = @CuisinierId AND commande_avisClient IS NOT NULL AND commande_avisClient != ''";
 
         using var cmd = new MySqlCommand(query, conn);
         cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
@@ -475,7 +475,7 @@ public class Commande
         using var conn = new MySqlConnection(connectionString);
         conn.Open();
 
-        string query = @" SELECT commande_notecuisinier FROM Commande WHERE utilisateur_id = @CuisinierId AND commande_notecuisinier IS NOT NULL";
+        string query = @"SELECT DISTINCT c.commande_notecuisinier FROM Commande c JOIN ElementCommande ec ON c.commande_id = ec.commande_id JOIN PlatPropose p ON ec.plat_id = p.plat_id JOIN PreparerPlat pp ON p.plat_id = pp.plat_id WHERE pp.utilisateur_id = @CuisinierId AND c.commande_notecuisinier IS NOT NULL";
 
         using var cmd = new MySqlCommand(query, conn);
         cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
@@ -494,7 +494,7 @@ public class Commande
         using var conn = new MySqlConnection(connectionString);
         conn.Open();
 
-        string query = @"SELECT AVG(commande_prixtotal) FROM Commande WHERE utilisateur_id = @CuisinierId";
+        string query = @"SELECT AVG(c.commande_prixtotal) FROM Commande c JOIN ElementCommande ec ON c.commande_id = ec.commande_id JOIN PlatPropose p ON ec.plat_id = p.plat_id JOIN PreparerPlat pp ON p.plat_id = pp.plat_id WHERE pp.utilisateur_id = @CuisinierId";
 
         using var cmd = new MySqlCommand(query, conn);
         cmd.Parameters.AddWithValue("@CuisinierId", cuisinierId);
@@ -502,7 +502,5 @@ public class Commande
         var result = cmd.ExecuteScalar();
         return result != DBNull.Value ? Convert.ToDecimal(result) : 0m;
     }
-
-
 
 }
