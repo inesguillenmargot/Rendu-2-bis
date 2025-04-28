@@ -1706,9 +1706,9 @@ public class Program
         using var conn = new MySqlConnection(connectionString);
         conn.Open();
 
-        string query = @"SELECT u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue,IFNULL(SUM(c.commande_prixtotal), 0) AS montant_total FROM Utilisateur u LEFT JOIN Commande c ON u.utilisateur_id = c.utilisateur_id WHERE u.utilisateur_type = 'client' GROUP BY u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue ORDER BY @Tri";
+        string query = @"SELECT u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue, u.utilisateur_num_rue, IFNULL(SUM(c.commande_prixtotal), 0) AS montant_total FROM Utilisateur u LEFT JOIN Commande c ON u.utilisateur_id = c.utilisateur_id WHERE u.utilisateur_type = 'client' GROUP BY u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue, u.utilisateur_id, u.utilisateur_nom, u.utilisateur_prenom, u.utilisateur_rue, u.utilisateur_num_rue ORDER BY @Tri";
 
-        var clients = new List<(string Nom, string Prenom, string Adresse, decimal MontantTotal)>();
+        var clients = new List<(string Nom, string Prenom, string Adresse, int NumRue, decimal MontantTotal)>();
 
         using var cmd = new MySqlCommand(query, conn);
         cmd.Parameters.AddWithValue("@Tri", critereTri);
@@ -1719,13 +1719,15 @@ public class Program
                 Nom: reader.GetString("utilisateur_nom"),
                 Prenom: reader.GetString("utilisateur_prenom"),
                 Adresse: reader.GetString("utilisateur_rue"),
+                NumRue: reader.GetInt32("utilisateur_num_rue"),
                 MontantTotal: reader.GetDecimal("montant_total")
             ));
         }
 
         Console.Clear();
 
-        var result = new List<(string Nom, string Prenom, string Adresse, decimal MontantTotal)>();
+        //je ne réussis pas à récupérer la requête trier donc je dois la trier à nouveau ici afin qu'elle s'affiche triée
+        var result = new List<(string Nom, string Prenom, string Adresse, int NumRue, decimal MontantTotal)>();
         if (trierAlpha)
         {
             result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ToList();
@@ -1735,11 +1737,11 @@ public class Program
         {
             if (trierAlpha == false)
             {
-                result = clients.OrderBy(c => c.Adresse).ToList();
+                result = clients.OrderBy(c => c.Adresse).ThenBy(c => c.NumRue).ToList();
             }
             else
             {
-                result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ThenBy(c => c.Adresse).ToList();
+                result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ThenBy(c => c.Adresse).ThenBy(c => c.NumRue).ToList();
             }
         }
 
@@ -1753,9 +1755,13 @@ public class Program
             {
                 result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ThenByDescending(c => c.MontantTotal).ToList();
             }
+            else if (trierRue && trierAlpha== false)
+            {
+                result = clients.OrderBy(c => c.Adresse).ThenBy(c => c.NumRue).ThenByDescending(c => c.MontantTotal).ToList();
+            }
             else
             {
-                result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ThenBy(c => c.Adresse).ThenByDescending(c => c.MontantTotal).ToList();
+                result = clients.OrderBy(c => c.Nom).ThenBy(c => c.Prenom).ThenBy(c => c.Adresse).ThenBy(c => c.NumRue).ThenByDescending(c => c.MontantTotal).ToList();
             }
         }
 
@@ -1764,7 +1770,7 @@ public class Program
         foreach (var client in result)
         {
             Console.WriteLine($"👤 {client.Nom} {client.Prenom}");
-            Console.WriteLine($"🏠 Rue : {client.Adresse}");
+            Console.WriteLine($"🏠 Rue : {client.NumRue} {client.Adresse}");
             Console.WriteLine($"💸 Achats cumulés : {client.MontantTotal:F2} €\n");
         }
         if (clients.Count == 0)
