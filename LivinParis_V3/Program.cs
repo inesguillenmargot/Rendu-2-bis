@@ -86,10 +86,36 @@ public class Program
 
         Console.Write("Prénom : ");
         utilisateur.Prenom = Console.ReadLine() ?? "";
-
-        utilisateur.Telephone = LireTelephoneValide();
         
-        utilisateur.Email = LireEmailValide();
+        // Boucle de vérification de doublon pour téléphone et email
+        // Vérification du numéro de téléphone
+        while (true)
+        {
+            utilisateur.Telephone = LireTelephoneValide();
+            if (Utilisateur.ExisteTelephone(utilisateur.Telephone))
+            {
+                Console.WriteLine("⚠️ Ce numéro de téléphone est déjà utilisé. Veuillez en entrer un autre ou vous connecter.");
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        // Vérification de l'adresse email
+        while (true)
+        {
+            utilisateur.Email = LireEmailValide();
+            if (Utilisateur.ExisteEmail(utilisateur.Email))
+            {
+                Console.WriteLine("⚠️ Cet email est déjà utilisé. Veuillez en entrer un autre ou vous connecter.");
+            }
+            else
+            {
+                break;
+            }
+        }
+
         
         utilisateur.MotDePasse = LireMotDePasseValide();
 

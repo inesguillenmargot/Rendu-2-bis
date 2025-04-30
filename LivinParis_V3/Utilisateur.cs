@@ -175,4 +175,42 @@ public class Utilisateur
         conn.Open();
         cmd.ExecuteNonQuery();
     }
+    
+    /// <summary>
+    /// permet de vérifier que le num de tel entré existe
+    /// </summary>
+    /// <param name="telephone"></param>
+    /// <returns></returns>
+    public static bool ExisteTelephone(string telephone)
+    {
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = "SELECT COUNT(*) FROM Utilisateur WHERE utilisateur_telephone = @Telephone";
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@Telephone", telephone);
+
+        return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+    }
+
+    /// <summary>
+    /// permet de vérifier que l'email entré existe
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns></returns>
+    public static bool ExisteEmail(string email)
+    {
+        using var conn = new MySqlConnection(connectionString);
+        conn.Open();
+
+        string query = "SELECT COUNT(*) FROM Utilisateur WHERE utilisateur_email = @Email";
+
+        using var cmd = new MySqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("@Email", email);
+
+        return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+    }
+
+
 }
