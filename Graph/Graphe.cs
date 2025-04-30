@@ -133,20 +133,7 @@ namespace LivinParisVF
         {
             return listeAdjacence;
         }
-
-        /// <summary>
-        /// Vérifie et affiche les stations (nœuds) isolées n’ayant aucun voisin dans le graphe.
-        /// </summary>
-        public void VerifierStationsIsolées()
-        {
-            foreach (var noeud in listeAdjacence.Keys)
-            {
-                if (listeAdjacence[noeud].Count == 0)
-                {
-                    Console.WriteLine($"La station {noeud} est isolée et n'a pas de voisins.");
-                }
-            }
-        }
+        
 
         /// <summary>
         /// Effectue un parcours en profondeur du graphe à partir d’un sommet donné.
@@ -186,112 +173,9 @@ namespace LivinParisVF
             }
         }
 
-        /// <summary>
-        /// Applique l’algorithme de Dijkstra pour trouver et afficher le chemin le plus court entre deux sommets.
-        /// Affiche également le temps total estimé.
-        /// </summary>
-        /// <param name="depart"></param>
-        /// <param name="arrivee"></param>
-        public void DijkstraEtAfficheChemin(T depart, T arrivee)
-        {
-            Console.WriteLine("DIJKSTRA");
-            var distances = new Dictionary<T, double>();
-            var precedents = new Dictionary<T, T>();
-            var filePriorite = new PriorityQueue<T, double>();
-            var visites = new HashSet<T>();
-
-            // Initialisation des distances à +∞
-            foreach (var noeud in listeAdjacence.Keys)
-            {
-                distances[noeud] = double.PositiveInfinity;
-            }
-
-            distances[depart] = 0;
-            filePriorite.Enqueue(depart, 0);
-
-            // Algorithme principal
-            while (filePriorite.Count > 0)
-            {
-                var courant = filePriorite.Dequeue();
-
-                if (!visites.Add(courant)) continue;
-
-                if (courant.Equals(arrivee)) break;
-
-                foreach (var voisin in listeAdjacence[courant])
-                {
-                    var voisinNoeud = voisin.Destination;
-                    var poids = voisin.Poids;
-
-                    // Vérifie si la station a été bien initialisée dans distances
-                    if (!distances.ContainsKey(voisinNoeud))
-                    {
-                        distances[voisinNoeud] = double.PositiveInfinity;
-                    }
-
-                    double nouvelleDistance = distances[courant] + poids;
-
-                    if (nouvelleDistance < distances[voisinNoeud])
-                    {
-                        distances[voisinNoeud] = nouvelleDistance;
-                        precedents[voisinNoeud] = courant;
-                        filePriorite.Enqueue(voisinNoeud, nouvelleDistance);
-                    }
-                }
-            }
-
-            // Si aucun chemin trouvé
-            if (!precedents.ContainsKey(arrivee) && !arrivee.Equals(depart))
-            {
-                Console.WriteLine("Aucun chemin trouvé entre les deux stations.");
-                return;
-            }
-
-            // Reconstruction du chemin
-            var chemin = new List<T>();
-            var actuel = arrivee;
-            while (!actuel.Equals(depart))
-            {
-                chemin.Insert(0, actuel);
-                actuel = precedents[actuel];
-            }
-            chemin.Insert(0, depart);
-
-            // Affichage du chemin
-            Console.WriteLine("\nChemin le plus court :");
-            foreach (var station in chemin)
-                Console.WriteLine($"  {station}");
-
-            dernierChemin = chemin;
-            // Calcul du temps réel en suivant les arcs du graphe
-            int tempsTotal = 0;
-            for (int i = 0; i < chemin.Count - 1; i++)
-            {
-                var from = chemin[i];
-                var to = chemin[i + 1];
-
-                // Trouver le lien entre from et to
-                var lien = listeAdjacence[from].FirstOrDefault(l => l.Destination.Equals(to));
-
-                if (lien != null)
-                {
-
-                    tempsTotal += lien.Poids;
-                }
-                else
-                {
-                    Console.WriteLine($" Lien manquant entre {from} et {to} (temps ignoré)");
-                }
-            }
-            Console.WriteLine($"\nTemps total estimé (vérifié) : {tempsTotal} minutes");
-
-
-        }
-
 
         /// <summary>
         ///  Applique l’algorithme de Dijkstra pour trouver et  retourner le temps le chemin le plus court entre deux sommets.
-
         /// </summary>
         /// <param name="depart"></param>
         /// <param name="arrivee"></param>
@@ -563,6 +447,14 @@ namespace LivinParisVF
             return temps; // Retourne le temps minimal entre les deux stations
         }
 
+        
+        /// <summary>
+        /// Compare les résultats des 3 algos de plus court chemin pour savoir le temps de trajet min entre 2 stations + retourne ce temps.
+        /// Affiche le chemin choisi par l'algo ayant le temps le plus court.
+        /// </summary>
+        /// <param name="stationDepart"></param>
+        /// <param name="stationArrivee"></param>
+        /// <returns></returns>
         public int ChoixMeilleurAlgo(T stationDepart, T stationArrivee)
         {
             int TempsD = Dijkstra(stationDepart, stationArrivee);
