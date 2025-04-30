@@ -425,6 +425,11 @@ public class Commande
         conn.Open();
         cmd.ExecuteNonQuery();
     }
+    
+    /// <summary>
+    /// Calcule la moyenne des prix de toutes les commandes passées dans le système.
+    /// </summary>
+    /// <returns>Moyenne des prix des commandes (decimal).</returns>
     public static decimal CalculerMoyennePrixCommandes()
     {
         decimal moyennePrix = 0;
@@ -450,6 +455,12 @@ public class Commande
 
         return moyennePrix;
     }
+    
+    /// <summary>
+    /// Récupère tous les avis textuels donnés par les clients pour un cuisinier donné.
+    /// </summary>
+    /// <param name="cuisinierId">Identifiant du cuisinier.</param>
+    /// <returns>Liste des avis clients sous forme de chaînes de caractères.</returns>
     public static List<string> RecupererAvisClientsPourCuisinier(int cuisinierId)
     {
         var avisList = new List<string>();
@@ -469,6 +480,11 @@ public class Commande
         return avisList;
     }
     
+    /// <summary>
+    /// Récupère toutes les notes numériques données par les clients à un cuisinier donné.
+    /// </summary>
+    /// <param name="cuisinierId">Identifiant du cuisinier.</param>
+    /// <returns>Liste des notes (décimales) données par les clients.</returns>
     public static List<decimal> RecupererNotesClientsPourCuisinier(int cuisinierId)
     {
         var notesList = new List<decimal>();
@@ -489,6 +505,11 @@ public class Commande
         return notesList;
     }
     
+    /// <summary>
+    /// Calcule la moyenne des prix des commandes associées aux plats préparés par un cuisinier spécifique.
+    /// </summary>
+    /// <param name="cuisinierId">Identifiant du cuisinier.</param>
+    /// <returns>Moyenne des prix des commandes en tant que decimal.</returns>
     public static decimal CalculerMoyennePrixCommandesParCuisinier(int cuisinierId)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -502,5 +523,4 @@ public class Commande
         var result = cmd.ExecuteScalar();
         return result != DBNull.Value ? Convert.ToDecimal(result) : 0m;
     }
-
 }

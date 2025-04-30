@@ -415,8 +415,7 @@ public class Program
         }
         while (true);
     }
-
-
+    
     
     static void MenuAdmin()
     {
@@ -937,6 +936,14 @@ public class Program
         }
     }
     
+    
+    /// <summary>
+    /// Méthode permettant à un cuisinier d'ajouter un plat au système.
+    /// Si "platDuJour" est vrai, la date de fabrication est celle du jour.
+    /// Permet aussi de créer une nouvelle recette si besoin, avec sélection de type de plat, nationalité, ingrédients, régimes.
+    /// </summary>
+    /// <param name="cuisinierId"></param>
+    /// <param name="platDuJour"></param>
     static void AjouterPlat(int cuisinierId, bool platDuJour = false)
     {
         Console.Clear();
@@ -1143,6 +1150,11 @@ public class Program
         Console.WriteLine("Appuie sur une touche pour continuer...");
         Console.ReadKey();
     }
+    
+    /// <summary>
+    /// Affiche des statistiques basiques sur les commandes passées par un client : nombre total de commandes, prix moyen, commande la plus chère.
+    /// </summary>
+    /// <param name="clientId"></param>
     static void AfficherStatistiquesPrixCommandesClient(int clientId)
     {
         Console.Clear();
@@ -1168,6 +1180,11 @@ public class Program
         Console.WriteLine("\nAppuyez sur une touche pour revenir...");
         Console.ReadKey();
     }
+    
+    /// <summary>
+    /// Affiche des statistiques détaillées pour un utilisateur (client) : nombre de commandes par nationalité de plat,nombre de commandes dans une période personnalisée,moyenne des notes données aux cuisiniers, moyenne des notes reçues des cuisiniers.
+    /// </summary>
+    /// <param name="utilisateurId"></param>
     public static void AfficherStatistiquesCommandes(int utilisateurId)
     {
         using var conn = new MySqlConnection(connectionString);
@@ -1259,6 +1276,12 @@ public class Program
         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
         Console.ReadKey();
     }
+    
+    /// <summary>
+    /// Permet de modifier les informations personnelles d’un cuisinier (nom, prénom, téléphone, email, adresse, station métro).
+    /// Les données sont mises à jour dans la base de données.
+    /// </summary>
+    /// <param name="cuisinierId"></param>
     static void ModifierDonneesCuisinier(int cuisinierId)
     {
         var utilisateur = Utilisateur.RecupererParId(cuisinierId); // Récupère les info du cuisinier
@@ -1328,6 +1351,12 @@ public class Program
         Console.WriteLine("\nAppuyez sur une touche pour retourner au menu...");
         Console.ReadKey();
     }
+    
+    /// <summary>
+    /// Permet à un client de mettre à jour ses informations personnelles de manière similaire au cuisinier.
+    /// Met à jour les données dans la base de données.
+    /// </summary>
+    /// <param name="clientId"></param>
     static void ModifierDonneesClient(int clientId)
     {
         var utilisateur = Utilisateur.RecupererParId(clientId);  // Récupère les infos du client
@@ -1597,6 +1626,11 @@ public class Program
         Console.ReadKey();
     }
     
+    /// <summary>
+    /// Permet à un cuisinier de noter un client après avoir livré une commande.
+    /// La méthode affiche les commandes livrées non encore notées pour aujourd’hui,propose une sélection, et permet de saisir une note entre 1 et 5.
+    /// </summary>
+    /// <param name="cuisinierId"></param>
     static void NoterClient(int cuisinierId)
     {
         // Récupérer toutes les commandes livrées par le cuisinier
@@ -1657,6 +1691,9 @@ public class Program
         }
     }
     
+    /// <summary>
+    /// Affiche les statistiques globales de l'application (moyenne des notes client, prix des commandes, visualisation du graphe).
+    /// </summary>
     static void AfficherStatsGlobales()
     {
         Console.Clear();
@@ -1692,6 +1729,9 @@ public class Program
         Console.ReadKey();
     }
 
+    /// <summary>
+    /// Permet de filtrer et d'afficher les clients selon plusieurs critères : ordre alphabétique, rue, ou montant total des commandes.
+    /// </summary>
     static void MenuFiltrerClients()
     {
         Console.Clear();
@@ -1818,6 +1858,9 @@ public class Program
         Console.ReadKey();
     }
 
+    /// <summary>
+    /// Affiche le meilleur et le pire cuisinier selon la moyenne des notes reçues des clients.
+    /// </summary>
     static void AfficherMeilleurPireCuisinier()
     {
         using var conn = new MySqlConnection(connectionString);
@@ -1850,6 +1893,9 @@ public class Program
         Console.WriteLine($"Pire cuisinier : ID {pire.Item1} avec {pire.Item2:F2}/5");
     }
 
+    /// <summary>
+    /// Affiche le meilleur et le pire client selon la moyenne des notes reçues des cuisiniers.
+    /// </summary>
     static void AfficherMeilleurPireClient()
     {
         using var conn = new MySqlConnection(connectionString);
@@ -1882,6 +1928,9 @@ public class Program
         Console.WriteLine($"Pire client : ID {pire.Item1} avec {pire.Item2:F2}/5");
     }
 
+    /// <summary>
+    /// Affiche la moyenne du prix des commandes pour chaque client.
+    /// </summary>
     static void AfficherMoyennePrixCommandesParClient()
     {
         using var conn = new MySqlConnection(connectionString);
@@ -1901,6 +1950,9 @@ public class Program
         }
     }
     
+    /// <summary>
+    /// Affiche les commandes passées entre deux dates saisies par l'utilisateur.
+    /// </summary>
     static void AfficherCommandesParPeriode()
     {
         Console.WriteLine("Entrez la date de début (format yyyy-MM-dd) :");
