@@ -1427,7 +1427,7 @@ public class Program
                 }
                 catch (InvalidCastException)
                 {
-                    // Si la conversion échoue, on peut ignorer ou gérer autrement
+                    // Si la conversion échoue
                     Console.WriteLine($"Avertissement : Impossible de convertir la cellule en nombre pour la station {station}.");
                 }
 
@@ -1572,6 +1572,7 @@ public class Program
             return texte.ToLower().Trim().Replace("é", "e").Replace("è", "e").Replace("ê", "e").Replace("à", "a").Replace("â", "a");
         }
 
+        //fonction lambda qui prend un objet s (une station) et vérifie si son nom (après normalisation) = à stationMetroClient ou stationMetroCuisinier (également normalisé)
         var stationDepart = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => Normaliser(s.Nom) == Normaliser(stationMetroCuisinier));
         var stationArrivee = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => Normaliser(s.Nom) == Normaliser(stationMetroClient));
 
