@@ -88,10 +88,9 @@ public class Program
         utilisateur.Prenom = Console.ReadLine() ?? "";
 
         utilisateur.Telephone = LireTelephoneValide();
-
-        Console.Write("Email : ");
-        utilisateur.Email = Console.ReadLine() ?? "";
-
+        
+        utilisateur.Email = LireEmailValide();
+        
         utilisateur.MotDePasse = LireMotDePasseValide();
 
         Console.Write("Station métro proche : ");
@@ -394,83 +393,105 @@ public class Program
         }
         while (true);
     }
-    
-   static void MenuAdmin()
-{
-    while (true)
+    static string LireEmailValide()
     {
-        Console.Clear();
-        Console.WriteLine("=== Espace Administrateur ===\n");
+        string? email;
+        do
+        {
+            Console.Write("Email (format attendu : exemple@domaine.com) : ");
+            email = Console.ReadLine();
 
-        string[] options = {
-            "Voir statistiques globales",
-            "Filtrer et afficher les clients",
-            "Voir meilleur & pire cuisinier",
-            "Voir meilleur & pire client",
-            "Voir moyenne des prix des commandes par client",
-            "Afficher toutes les commandes d'une période",
-            "⬅ Retour"
-        };
+            if (!string.IsNullOrWhiteSpace(email) &&
+                email.Contains("@") &&
+                email.Contains(".") &&
+                email.IndexOf('@') > 0 && // '@' ne doit pas être en première position
+                email.LastIndexOf('.') > email.IndexOf('@') + 1 && // '.' doit être après '@' avec au moins un caractère entre
+                email.LastIndexOf('.') < email.Length - 1) // '.' ne doit pas être le dernier caractère
+            {
+                return email;
+            }
 
-        int selected = 0;
+            Console.WriteLine("❌ Adresse email invalide. Réessayez.");
+        }
+        while (true);
+    }
 
-        // Menu déroulant Admin
+
+    
+    static void MenuAdmin()
+    {
         while (true)
         {
             Console.Clear();
-            Console.WriteLine("=== Menu Administrateur ===\n");
+            Console.WriteLine("=== Espace Administrateur ===\n");
 
-            for (int i = 0; i < options.Length; i++)
-            {
-                Console.Write(i == selected ? "👉 " : "   ");
-                Console.ForegroundColor = (i == selected) ? ConsoleColor.Cyan : ConsoleColor.Gray;
-                Console.WriteLine(options[i]);
-            }
-            Console.ResetColor();
+            string[] options = {
+                "Voir statistiques globales",
+                "Filtrer et afficher les clients",
+                "Voir meilleur & pire cuisinier",
+                "Voir meilleur & pire client",
+                "Voir moyenne des prix des commandes par client",
+                "Afficher toutes les commandes d'une période",
+                "⬅ Retour"
+            };
 
-            ConsoleKey key = Console.ReadKey(true).Key;
-            switch (key)
+            int selected = 0;
+
+            // Menu déroulant Admin
+            while (true)
             {
-                case ConsoleKey.UpArrow:
-                    selected = (selected - 1 + options.Length) % options.Length;
-                    break;
-                case ConsoleKey.DownArrow:
-                    selected = (selected + 1) % options.Length;
-                    break;
-                case ConsoleKey.Enter:
-                    Console.Clear();
-                    switch (selected)
-                    {
-                        case 0: // Statistiques globales
-                            AfficherStatsGlobales();
-                            break;
-                        case 1: // Filtrer clients
-                            MenuFiltrerClients();
-                            break;
-                        case 2: // Meilleur et pire cuisinier
-                            AfficherMeilleurPireCuisinier();
-                            break;
-                        case 3: // Meilleur et pire client
-                            AfficherMeilleurPireClient();
-                            break;
-                        case 4: // Moyenne des prix par client
-                            AfficherMoyennePrixCommandesParClient();
-                            break;
-                        case 5: // Commandes sur une période
-                            AfficherCommandesParPeriode();
-                            break;
-                        case 6: // Retour
-                            return;
-                    }
-                    Console.WriteLine("\nAppuie sur une touche pour continuer...");
-                    Console.ReadKey();
-                    break;
+                Console.Clear();
+                Console.WriteLine("=== Menu Administrateur ===\n");
+
+                for (int i = 0; i < options.Length; i++)
+                {
+                    Console.Write(i == selected ? "👉 " : "   ");
+                    Console.ForegroundColor = (i == selected) ? ConsoleColor.Cyan : ConsoleColor.Gray;
+                    Console.WriteLine(options[i]);
+                }
+                Console.ResetColor();
+
+                ConsoleKey key = Console.ReadKey(true).Key;
+                switch (key)
+                {
+                    case ConsoleKey.UpArrow:
+                        selected = (selected - 1 + options.Length) % options.Length;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        selected = (selected + 1) % options.Length;
+                        break;
+                    case ConsoleKey.Enter:
+                        Console.Clear();
+                        switch (selected)
+                        {
+                            case 0: // Statistiques globales
+                                AfficherStatsGlobales();
+                                break;
+                            case 1: // Filtrer clients
+                                MenuFiltrerClients();
+                                break;
+                            case 2: // Meilleur et pire cuisinier
+                                AfficherMeilleurPireCuisinier();
+                                break;
+                            case 3: // Meilleur et pire client
+                                AfficherMeilleurPireClient();
+                                break;
+                            case 4: // Moyenne des prix par client
+                                AfficherMoyennePrixCommandesParClient();
+                                break;
+                            case 5: // Commandes sur une période
+                                AfficherCommandesParPeriode();
+                                break;
+                            case 6: // Retour
+                                return;
+                        }
+                        Console.WriteLine("\nAppuie sur une touche pour continuer...");
+                        Console.ReadKey();
+                        break;
+                }
             }
         }
     }
-}
-
-
     static void MenuCuisinier(int cuisinierId)
     {
         string[] options = {
@@ -915,6 +936,7 @@ public class Program
             }
         }
     }
+    
     static void AjouterPlat(int cuisinierId, bool platDuJour = false)
     {
         Console.Clear();
