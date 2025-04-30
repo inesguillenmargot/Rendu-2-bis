@@ -115,12 +115,13 @@ public class Program
                 break;
             }
         }
-
         
         utilisateur.MotDePasse = LireMotDePasseValide();
 
         Console.Write("Station métro proche : ");
-        utilisateur.MetroProche = Console.ReadLine() ?? "";
+        string station = Console.ReadLine() ?? "";
+        ListeStationsMetro.ProposerStationSiNonExistante(ref station);
+        utilisateur.MetroProche = station;
 
         Console.Write("Rue : ");
         utilisateur.Rue = Console.ReadLine() ?? "";
@@ -768,7 +769,7 @@ public class Program
                         case 0: //Passer une commande
                             var platsDispos = PlatPropose.RecupererListeTousPlats();  // Récupère tous les plats dispo
                             var platsCommandes = new List<(PlatPropose plat, DateTime dateLivraison, string stationMetro, int quantite)>();
-                            var selectionnes = new HashSet<int>();  // Pour éviter les sélections multiples du même plat --> demande lors de la commande le nb de plats toto nécessaire
+                            var selectionnes = new HashSet<int>();  // Pour éviter les sélections multiples du même plat --> demande lors de la commande le nb de plats "toto" nécessaire
                             int index = 0;
                             ConsoleKey touche;
 
