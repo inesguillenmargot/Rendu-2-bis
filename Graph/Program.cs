@@ -21,44 +21,6 @@ class Program
     {
         string cheminExcel = FichierUtilise.GetCheminExcel();
         var graphe = ChargementGraphe.ChargerGrapheDepuisExcel(cheminExcel);
-        /*var visualiseur = new GrapheVisualizer<Station>(graphe);
-        
-
-
-        var stationSource = graphe.GetListeAdjacence().Keys.First();
-        graphe.ParcoursLargeur(stationSource);
-        Console.WriteLine();
-        Console.WriteLine(graphe.EstConnexe());
-        Console.WriteLine();
-        graphe.ParcoursProfondeurAvecAffichage(stationSource);
-
-        Console.WriteLine("Entrez le nom de la station de départ :");
-        string nomDepart = Console.ReadLine().Trim().ToLower();
-
-        Console.WriteLine("Entrez le nom de la station d’arrivée :");
-        string nomArrivee = Console.ReadLine().Trim().ToLower();
-
-        var stationDepart = graphe.GetListeAdjacence().Keys
-            .FirstOrDefault(s => s.Nom.ToLower().Contains(nomDepart));
-
-        var stationArrivee = graphe.GetListeAdjacence().Keys
-            .FirstOrDefault(s => s.Nom.ToLower().Contains(nomArrivee));
-        if (stationDepart == null)
-        {
-            Console.WriteLine("La station de départ est introuvable.");
-        }
-        else if (stationArrivee == null)
-        {
-            Console.WriteLine("La station d’arrivée est introuvable.");
-        }
-        else
-        {
-            graphe.DijkstraEtAfficheChemin(stationDepart, stationArrivee);
-            ///graphe.BellmanFordEtAfficheChemin(stationDepart, stationArrivee);
-            ///graphe.FloydWarshallEtAfficheChemin();
-            visualiseur.DessinerGraphe("graphe_paris.png");
-        }*/
-        
         var couleurs = graphe.ColorierGrapheWelshPowell();
         var visualiseur = new GrapheVisualizer<Station>(graphe,couleurs); /// si je ne veux pas la coloration, j'enleve le paramètre couleur
 
@@ -101,11 +63,14 @@ class Program
         Console.WriteLine("Entrez le nom de la station d’arrivée :");
         string nomArrivee = Console.ReadLine().Trim().ToLower();
 
-        var stationDepart = graphe.GetListeAdjacence().Keys
-            .FirstOrDefault(s => s.Nom.ToLower().Contains(nomDepart));
+        string Normaliser(string texte)
+        {
+            return texte.ToLower().Trim().Replace("é", "e").Replace("è", "e").Replace("ê", "e").Replace("à", "a").Replace("â", "a");
+        }
 
-        var stationArrivee = graphe.GetListeAdjacence().Keys
-            .FirstOrDefault(s => s.Nom.ToLower().Contains(nomArrivee));
+        var stationDepart = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => Normaliser(s.Nom) == Normaliser(nomDepart));
+        var stationArrivee = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => Normaliser(s.Nom) == Normaliser(nomArrivee));
+        
         if (stationDepart == null)
         {
             Console.WriteLine("La station de départ est introuvable.");
@@ -116,11 +81,10 @@ class Program
         }
         else
         {
-            graphe.DijkstraEtAfficheChemin(stationDepart, stationArrivee);
-            ///graphe.BellmanFordEtAfficheChemin(stationDepart, stationArrivee);
-            ///graphe.FloydWarshallEtAfficheChemin();
-   
-
+            //graphe.DijkstraEtAfficheChemin(stationDepart, stationArrivee);
+            //graphe.BellmanFordEtAfficheChemin(stationDepart, stationArrivee);
+            //graphe.FloydWarshallEtAfficheChemin(stationDepart, stationArrivee);
+            graphe.ChoixMeilleurAlgo(stationDepart, stationArrivee);
         }
         visualiseur.DessinerGraphe("graphe_paris.png");
     }

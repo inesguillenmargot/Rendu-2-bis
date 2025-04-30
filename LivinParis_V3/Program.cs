@@ -1540,22 +1540,29 @@ public class Program
         
         // Récupérer la station de métro du cuisinier
         string stationMetroCuisinier = Utilisateur.RecupererParId(cuisinierId).MetroProche;
-        var stationDepart = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => s.Nom.ToLower().Contains(stationMetroCuisinier));
 
         // Récupérer la station de métro du client à partir de l'élément de la commande
         var elementCommande = ElementCommande.RecupererElementCommandeParCommandeId(commandeId).FirstOrDefault();
         string stationMetroClient = elementCommande?.StationMetro ?? ""; // Si aucun élément, on retourne une chaîne vide
-        var stationArrivee = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => s.Nom.ToLower().Contains(stationMetroClient));
-
-
-        if (string.IsNullOrEmpty(stationMetroClient))
+        
+        string Normaliser(string texte)
         {
-            Console.WriteLine("❌ La station de métro du client n'a pas été trouvée.");
-            return;
+            return texte.ToLower().Trim().Replace("é", "e").Replace("è", "e").Replace("ê", "e").Replace("à", "a").Replace("â", "a");
         }
 
-        int dureeLivraison = 2;
-        //int dureeLivraison = graphe.Dijkstra(stationDepart, stationArrivee);
+        var stationDepart = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => Normaliser(s.Nom) == Normaliser(stationMetroCuisinier));
+        var stationArrivee = graphe.GetListeAdjacence().Keys.FirstOrDefault(s => Normaliser(s.Nom) == Normaliser(stationMetroClient));
+
+
+        if (stationDepart == null || stationArrivee == null)
+        {
+            Console.WriteLine("❌ Station de départ ou d'arrivée introuvable dans le graphe.");
+            return;
+        }
+        
+        int dureeLivraison = graphe.ChoixMeilleurAlgo(stationDepart, stationArrivee);
+        var visualiseur = new GrapheVisualizer<Station>(graphe);
+        visualiseur.DessinerGraphe("graphe_paris.png");
 
         elementAtraiter.DureeLivraison = dureeLivraison;
         elementAtraiter.MettreAJourLivraison();

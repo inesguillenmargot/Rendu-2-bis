@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using ClosedXML.Excel;
 
+using System;
+using System.Collections.Generic;
+using ClosedXML.Excel;
+
 namespace LivinParisVF
 {
-   public class Graphe<T>
+    public class Graphe<T>
     {
         private List<T> dernierChemin = new List<T>();
         private Dictionary<T, List<Lien<T>>> listeAdjacence;
@@ -26,7 +30,7 @@ namespace LivinParisVF
         {
             return dernierChemin;
         }
-        
+
         /// <summary>
         /// Ajoute un nouveau nœud au graphe s’il n’est pas déjà présent
         /// </summary>
@@ -271,7 +275,7 @@ namespace LivinParisVF
 
                 if (lien != null)
                 {
-                    
+
                     tempsTotal += lien.Poids;
                 }
                 else
@@ -283,17 +287,16 @@ namespace LivinParisVF
 
 
         }
-        
-        
+
+
         /// <summary>
         ///  Applique l’algorithme de Dijkstra pour trouver et  retourner le temps le chemin le plus court entre deux sommets.
-       
+
         /// </summary>
         /// <param name="depart"></param>
         /// <param name="arrivee"></param>
         public int Dijkstra(T depart, T arrivee)
         {
-            Console.WriteLine("DIJKSTRA");
             var distances = new Dictionary<T, double>();
             var precedents = new Dictionary<T, T>();
             var filePriorite = new PriorityQueue<T, double>();
@@ -343,7 +346,6 @@ namespace LivinParisVF
             if (!precedents.ContainsKey(arrivee) && !arrivee.Equals(depart))
             {
                 Console.WriteLine("Aucun chemin trouvé entre les deux stations.");
-                
             }
 
             // Reconstruction du chemin
@@ -370,7 +372,7 @@ namespace LivinParisVF
 
                 if (lien != null)
                 {
-                    
+
                     tempsTotal += lien.Poids;
                 }
                 else
@@ -378,20 +380,17 @@ namespace LivinParisVF
                     Console.WriteLine($" Lien manquant entre {from} et {to} (temps ignoré)");
                 }
             }
-            Console.WriteLine($"\nTemps total estimé (vérifié) : {tempsTotal} minutes");
             return tempsTotal;
-
         }
-        
+
         /// <summary>
         /// Applique l’algorithme de Bellman-Ford pour déterminer le chemin le plus court entre deux nœuds.
         /// Détecte aussi les cycles de poids négatif. Affiche le chemin et le temps total estimé.
         /// </summary>
         /// <param name="depart"></param>
         /// <param name="arrivee"></param>
-        public void BellmanFordEtAfficheChemin(T depart, T arrivee)
+        public int BellmanFordEtAfficheChemin(T depart, T arrivee)
         {
-            Console.WriteLine("BELLMANFORD");
             var distances = new Dictionary<T, double>();
             var precedents = new Dictionary<T, T>();
 
@@ -432,7 +431,7 @@ namespace LivinParisVF
                     if (distances[u] + lien.Poids < distances[v])
                     {
                         Console.WriteLine("Le graphe contient un cycle de poids négatif !");
-                        return;
+                        
                     }
                 }
             }
@@ -441,7 +440,7 @@ namespace LivinParisVF
             if (!precedents.ContainsKey(arrivee) && !arrivee.Equals(depart))
             {
                 Console.WriteLine(" Aucun chemin trouvé entre les deux stations.");
-                return;
+                
             }
 
             // Reconstruction du chemin
@@ -464,7 +463,7 @@ namespace LivinParisVF
             }
 
             // Calcul du temps total réel avec vérification des arcs
-            double tempsTotal = 0;
+            int tempsTotal = 0;
             for (int i = 0; i < chemin.Count - 1; i++)
             {
                 var from = chemin[i];
@@ -480,36 +479,34 @@ namespace LivinParisVF
                 {
                     Console.WriteLine($" Lien manquant entre {from} et {to} (temps ignoré)");
                 }
+               
             }
-
-            Console.WriteLine($"\n Temps total estimé : {tempsTotal} minutes");
+            return tempsTotal;
         }
-        
+
         /// <summary>
         /// Applique l’algorithme de Floyd-Warshall pour calculer les plus courts chemins entre toutes les paires de nœuds.
         /// Affiche les distances entre tous les couples de stations.
         /// </summary>
-        public void FloydWarshallEtAfficheChemin()
+        public int FloydWarshallEtAfficheChemin(T stationDepart, T stationArrivee)
         {
             var noeuds = listeAdjacence.Keys.ToList();
             int n = noeuds.Count;
 
             // Dictionnaires pour indexer les sommets
             var indexNoeud = new Dictionary<T, int>();
-            var inverseIndex = new Dictionary<int, T>();
 
             for (int i = 0; i < n; i++)
             {
                 indexNoeud[noeuds[i]] = i;
-                inverseIndex[i] = noeuds[i];
             }
 
             // Matrice des distances
-            double[,] distances = new double[n, n];
-            T?[,] precedents = new T[n, n];
+            int[,] distances = new int[n, n];
 
             // Initialisation
             for (int i = 0; i < n; i++)
+            {
                 for (int j = 0; j < n; j++)
                 {
                     if (i == j)
@@ -518,10 +515,10 @@ namespace LivinParisVF
                     }
                     else
                     {
-                        distances[i, j] = double.PositiveInfinity;
+                        distances[i, j] = int.MaxValue; // Utilisation de int.MaxValue pour l'infini
                     }
-                    precedents[i, j] = default;
                 }
+            }
 
             // Remplir avec les poids connus
             foreach (var u in listeAdjacence.Keys)
@@ -531,7 +528,6 @@ namespace LivinParisVF
                 {
                     int j = indexNoeud[lien.Destination];
                     distances[i, j] = lien.Poids;
-                    precedents[i, j] = u;
                 }
             }
 
@@ -542,32 +538,53 @@ namespace LivinParisVF
                 {
                     for (int j = 0; j < n; j++)
                     {
-                        if (distances[i, k] + distances[k, j] < distances[i, j])
+                        if (distances[i, k] != int.MaxValue && distances[k, j] != int.MaxValue &&
+                            distances[i, k] + distances[k, j] < distances[i, j])
                         {
                             distances[i, j] = distances[i, k] + distances[k, j];
-                            precedents[i, j] = precedents[k, j];
                         }
                     }
                 }
             }
 
-            // Affichage optionnel des distances minimales entre toutes les paires
-            Console.WriteLine("\nPlus courts chemins (Floyd-Warshall) :");
-            for (int i = 0; i < n; i++)
+            // Index des stations de départ et d'arrivée
+            int departIndex = indexNoeud[stationDepart];
+            int arriveeIndex = indexNoeud[stationArrivee];
+
+            // Temps entre la station de départ et la station d'arrivée
+            int temps = distances[departIndex, arriveeIndex];
+
+            if (temps == int.MaxValue)
             {
-                for (int j = 0; j < n; j++)
-                {
-                    var depart = inverseIndex[i];
-                    var arrivee = inverseIndex[j];
-                    var distance = distances[i, j];
+                Console.WriteLine("Il n'y a pas de chemin entre ces deux stations.");
+                return -1; // Retourne -1 si aucune route n'existe
+            }
 
-                    if (double.IsInfinity(distance)) continue;
+            return temps; // Retourne le temps minimal entre les deux stations
+        }
 
-                    Console.WriteLine($" → {depart} → {arrivee} : {distance} min");
-                }
+        public int ChoixMeilleurAlgo(T stationDepart, T stationArrivee)
+        {
+            int TempsD = Dijkstra(stationDepart, stationArrivee);
+            int TempsB = BellmanFordEtAfficheChemin(stationDepart, stationArrivee);
+            int TempsF=  FloydWarshallEtAfficheChemin(stationDepart,stationArrivee);
+            if (TempsD <= TempsB && TempsD <= TempsF)
+            {
+                Console.WriteLine($"\nTemps total estimé (vérifié) : {TempsD} minutes");
+                return TempsD;
+            }
+            else if (TempsB <= TempsD && TempsB <= TempsF)
+            {
+                Console.WriteLine($"\nTemps total estimé (vérifié) : {TempsB} minutes");
+                return TempsB;
+            }
+            else
+            {
+                Console.WriteLine($"\nTemps total estimé (vérifié) : {TempsF} minutes");
+                return TempsF;
             }
         }
-        
+
         /// <summary>
         /// Applique l'algorithme de Welsh-Powell pour colorier le graphe.
         /// Associe à chaque sommet une couleur (représentée par un entier) de manière à ce que deux sommets adjacents n'aient jamais la même couleur.
@@ -577,7 +594,7 @@ namespace LivinParisVF
         /// </returns>
         public Dictionary<T, int> ColorierGrapheWelshPowell()
         {
-    
+
             // Ordonner les sommets par degré décroissant
             var sommets = listeAdjacence.Keys
                 .OrderByDescending(noeud => listeAdjacence[noeud].Count)
@@ -624,5 +641,4 @@ namespace LivinParisVF
         }
     }
 }
-
 
