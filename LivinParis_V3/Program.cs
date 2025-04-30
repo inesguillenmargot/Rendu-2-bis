@@ -298,7 +298,7 @@ public class Program
 
             if (utilisateur.EstAdmin)
             {
-                MenuAdmin();
+                MenuAdmin(utilisateurId);
             }
             if (utilisateur.EstCuisinier && !utilisateur.EstClient)
             {
@@ -444,7 +444,7 @@ public class Program
     }
     
     
-    static void MenuAdmin()
+    static void MenuAdmin(int adminId)
     {
         while (true)
         {
@@ -458,6 +458,7 @@ public class Program
                 "Voir meilleur & pire client",
                 "Voir moyenne des prix des commandes par client",
                 "Afficher toutes les commandes d'une période",
+                "Supprimer ton compte",
                 "⬅ Retour"
             };
 
@@ -508,7 +509,24 @@ public class Program
                             case 5: // Commandes sur une période
                                 AfficherCommandesParPeriode();
                                 break;
-                            case 6: // Retour
+                            case 6: //
+                                Console.Write("\n⚠️ Es-tu sûr de vouloir supprimer ton compte ? (o/n) : ");
+                                var confirmation = Console.ReadLine()?.ToLower();
+                                if (confirmation == "o")
+                                {
+                                    Utilisateur.SupprimerParId(adminId);
+                                    Console.WriteLine("✅ Ton compte a bien été supprimé.");
+                                    Console.WriteLine("Appuie sur une touche pour quitter...");
+                                    Console.ReadKey();
+                                    return; // quitte le menu admin
+                                }
+                                else
+                                {
+                                    Console.WriteLine("❌ Suppression annulée.");
+                                    Console.ReadKey();
+                                }
+                                break;
+                            case 7: // Retour
                                 return;
                         }
                         Console.WriteLine("\nAppuie sur une touche pour continuer...");
