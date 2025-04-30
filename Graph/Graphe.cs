@@ -601,7 +601,7 @@ namespace LivinParisVF
                 .ToList();
 
             var couleurs = new Dictionary<T, int>();
-            int couleurActuelle = 1;
+            int couleurActuelle = 0;
 
             foreach (var sommet in sommets)
             {

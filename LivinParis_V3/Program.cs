@@ -1659,6 +1659,12 @@ public class Program
             Console.WriteLine("❌ Erreur lors du chargement des statistiques : " + ex.Message);
         }
 
+        string cheminExcelgraphe = FichierUtilise.GetCheminExcel();
+        var graphe = ChargementGraphe.ChargerGrapheDepuisExcel(cheminExcelgraphe);
+        var couleurs = graphe.ColorierGrapheWelshPowell();
+        var visualiseur = new GrapheVisualizer<Station>(graphe,couleurs);
+        visualiseur.DessinerGraphe("graphe_paris.png");
+        
         Console.WriteLine("\nAppuie sur une touche pour continuer...");
         Console.ReadKey();
     }
