@@ -523,4 +523,37 @@ public class Commande
         var result = cmd.ExecuteScalar();
         return result != DBNull.Value ? Convert.ToDecimal(result) : 0m;
     }
+    
+    /// <summary>
+    /// Méthode permettant de récupérer toutes les commandes passées ainsi que leurs caractéristiques
+    /// </summary>
+    /// <returns></returns>
+    public static List<Commande> RecupererToutes()
+    {
+        var commandes = new List<Commande>();
+        using var conn = new MySqlConnection("Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;");
+        conn.Open();
+
+        string query = "SELECT * FROM Commande";
+
+        using var cmd = new MySqlCommand(query, conn);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            var commande = new Commande
+            {
+                CommandeId = reader.GetInt32("commande_id"),
+                PrixTotal = reader.GetDecimal("commande_prixtotal"),
+                Statut = reader.GetString("commande_statut"),
+                AvisClient = reader.IsDBNull(reader.GetOrdinal("commande_avisClient")) ? "" : reader.GetString("commande_avisClient"),
+                NoteClient = reader.IsDBNull(reader.GetOrdinal("commande_noteclient")) ? 0 : reader.GetDecimal("commande_noteclient"),
+                NoteCuisinier = reader.IsDBNull(reader.GetOrdinal("commande_notecuisinier")) ? 0 : reader.GetDecimal("commande_notecuisinier"),
+                UtilisateurId = reader.GetInt32("utilisateur_id")
+            };
+            commandes.Add(commande);
+        }
+
+        return commandes;
+    }
+
 }

@@ -7,6 +7,9 @@ using OfficeOpenXml;
 using System.Linq;
 using ClosedXML.Excel;
 using LivinParisVF;
+using System.Text.Json;
+using System.Xml.Serialization;
+
 
 public class Program
 {
@@ -458,6 +461,8 @@ public class Program
                 "Voir meilleur & pire client",
                 "Voir moyenne des prix des commandes par client",
                 "Afficher toutes les commandes d'une période",
+                "Exporter utilisateurs (JSON)",
+                "Exporter utilisateurs (XML)",
                 "Supprimer ton compte",
                 "⬅ Retour"
             };
@@ -509,7 +514,14 @@ public class Program
                             case 5: // Commandes sur une période
                                 AfficherCommandesParPeriode();
                                 break;
-                            case 6: //
+                            case 6 : //
+                                ExporterToutJson("utilisateurs_export.json");
+                                break;
+
+                            case 7: // Export XML
+                                ExporterToutXml("utilisateurs_export.xml");
+                                break;
+                            case 8: // Suppresion du compte admin
                                 Console.Write("\n⚠️ Es-tu sûr de vouloir supprimer ton compte ? (o/n) : ");
                                 var confirmation = Console.ReadLine()?.ToLower();
                                 if (confirmation == "o")
@@ -526,7 +538,7 @@ public class Program
                                     Console.ReadKey();
                                 }
                                 break;
-                            case 7: // Retour
+                            case 9: // Retour
                                 return;
                         }
                         Console.WriteLine("\nAppuie sur une touche pour continuer...");
@@ -2044,5 +2056,72 @@ public class Program
             Console.WriteLine($"📦 Commande {c.commandeId} | Client {c.clientId} | Date : {c.date:dd/MM/yyyy} | Total : {c.prix:F2}€");
         }
     }
+    
+    /// <summary>
+    /// Exporte toutes les données importantes de l'application (utilisateurs, commandes, plats, recettes)
+    /// dans un fichier JSON. Les données sont sérialisées avec indentation pour une meilleure lisibilité.
+    /// </summary>
+    /// <param name="cheminFichier">Chemin complet où sera enregistré le fichier JSON.</param>
+    static void ExporterToutJson(string cheminFichier)
+    {
+        var utilisateurs = Utilisateur.RecupererTous();
+        var commandes = Commande.RecupererToutes();
+        var plats = PlatPropose.RecupererTous();
+        var recettes = Recette.RecupereListeToutesRecettes();
 
+        var export = new
+        {
+            Utilisateurs = utilisateurs,
+            Commandes = commandes,
+            Plats = plats,
+            Recettes = recettes
+        };
+
+        string jsonString = JsonSerializer.Serialize(export, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(cheminFichier, jsonString);
+
+        Console.WriteLine($"✅ Export JSON effectué dans : {Path.GetFullPath(cheminFichier)}");
+    }
+
+    /// <summary>
+    /// Exporte toutes les données importantes de l'application (utilisateurs, commandes, plats, recettes)
+    /// dans un fichier XML. Un namespace vide est utilisé pour produire un XML propre sans balises inutiles.
+    /// </summary>
+    /// <param name="cheminFichier">Chemin complet où sera enregistré le fichier XML.</param>
+    static void ExporterToutXml(string cheminFichier)
+    {
+        var utilisateurs = Utilisateur.RecupererTous();
+        var commandes = Commande.RecupererToutes();
+        var plats = PlatPropose.RecupererTous();
+        var recettes = Recette.RecupereListeToutesRecettes();
+
+        var export = new ExportData
+        {
+            Utilisateurs = utilisateurs,
+            Commandes = commandes,
+            Plats = plats,
+            Recettes = recettes
+        };
+
+        XmlSerializer serializer = new XmlSerializer(typeof(ExportData));
+        using var writer = new StreamWriter(cheminFichier);
+        XmlSerializerNamespaces namespaces = new XmlSerializerNamespaces();
+        namespaces.Add(string.Empty, string.Empty); // Pour éviter les xmlns:xsi et xmlns:xsd dans le XML (avoir des noms de fichiers adapté)
+
+        serializer.Serialize(writer, export, namespaces);
+
+        Console.WriteLine($"✅ Export XML effectué dans : {Path.GetFullPath(cheminFichier)}");
+    }
+
+    /// <summary>
+    /// Classe qui sert de conteneur pour l'export XML.
+    /// Contient les listes d'utilisateurs, commandes, plats et recettes.
+    /// </summary>
+    public class ExportData
+    {
+        public List<Utilisateur> Utilisateurs { get; set; } = new();
+        public List<Commande> Commandes { get; set; } = new();
+        public List<PlatPropose> Plats { get; set; } = new();
+        public List<Recette> Recettes { get; set; } = new();
+    }
 }

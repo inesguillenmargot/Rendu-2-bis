@@ -197,4 +197,38 @@ public class PlatPropose
         }
         return null;
     }
+    
+    /// <summary>
+    /// Méthdde permettant de récupérer une liste de tous les plats proposés (peut importe le cuisinier)
+    /// </summary>
+    /// <returns></returns>
+    public static List<PlatPropose> RecupererTous()
+    {
+        var plats = new List<PlatPropose>();
+        using var conn = new MySqlConnection("Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;");
+        conn.Open();
+
+        string query = "SELECT * FROM PlatPropose";
+
+        using var cmd = new MySqlCommand(query, conn);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            var plat = new PlatPropose
+            {
+                PlatId = reader.GetInt32("plat_id"),
+                Nom = reader.GetString("plat_nom"),
+                NbPersonnes = reader.GetInt32("plat_nbpersonnes"),
+                DateFabrication = reader.GetDateTime("plat_datefabrication"),
+                DatePeremption = reader.GetDateTime("plat_dateperemption"),
+                PrixParPersonne = reader.GetDecimal("plat_prixpp"),
+                Photos = reader.IsDBNull(reader.GetOrdinal("plat_photos")) ? "" : reader.GetString("plat_photos"),
+                RecetteId = reader.GetInt32("recette_id")
+            };
+            plats.Add(plat);
+        }
+
+        return plats;
+    }
+
 }

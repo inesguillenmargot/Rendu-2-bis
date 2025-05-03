@@ -211,6 +211,43 @@ public class Utilisateur
 
         return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
     }
+    
+    /// <summary>
+    /// Méthode permettant de récupérer une liste de tous les utilisateurs
+    /// </summary>
+    /// <returns></returns>
+    public static List<Utilisateur> RecupererTous()
+    {
+        var liste = new List<Utilisateur>();
+        using var conn = new MySqlConnection("Server=localhost;Port=3306;Database=livinparis_db;Uid=root;Pwd=Qjgfh59!#23T;");
+        string query = "SELECT * FROM Utilisateur";
+
+        using var cmd = new MySqlCommand(query, conn);
+        conn.Open();
+        using var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            var utilisateur = new Utilisateur
+            {
+                UtilisateurId = reader.GetInt32("utilisateur_id"),
+                Nom = reader.GetString("utilisateur_nom"),
+                Prenom = reader.GetString("utilisateur_prenom"),
+                Telephone = reader.GetString("utilisateur_telephone"),
+                Email = reader.GetString("utilisateur_email"),
+                Rue = reader.GetString("utilisateur_rue"),
+                NumRue = reader.GetInt32("utilisateur_num_rue"),
+                CodePostal = reader.GetInt32("utilisateur_codepostal"),
+                Ville = reader.GetString("utilisateur_ville"),
+                MetroProche = reader.GetString("utilisateur_metroproche"),
+                Type = reader.GetString("utilisateur_type"),
+                // ... ajoute les autres champs si besoin
+            };
+            liste.Add(utilisateur);
+        }
+        return liste;
+    }
+
 
 
 }
