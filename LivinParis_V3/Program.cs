@@ -1737,7 +1737,7 @@ public class Program
     }
     
     /// <summary>
-    /// méthode permettant de retrouver de manièreprpre le fichier excel avec les stations de m"tro, leur lattitude, le temps entre chaque station etc...
+    /// méthode permettant de retrouver de manière propre le fichier excel avec les stations de métro, leur lattitude, le temps entre chaque station etc...
     /// </summary>
     public static class FichierUtilise
     {
