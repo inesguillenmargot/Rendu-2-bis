@@ -126,11 +126,11 @@ public class Program
         ListeStationsMetro.ProposerStationSiNonExistante(ref station);
         utilisateur.MetroProche = station;
 
-        Console.Write("Rue : ");
-        utilisateur.Rue = Console.ReadLine() ?? "";
-
         Console.Write("Numéro de rue : ");
         utilisateur.NumRue = int.Parse(Console.ReadLine() ?? "0");
+        
+        Console.Write("Rue : ");
+        utilisateur.Rue = Console.ReadLine() ?? "";
 
         utilisateur.CodePostal = LireCodePostalValide();
 
@@ -383,7 +383,7 @@ public class Program
         }
         while (true);
     }
-    static int LireCodePostalValide()
+    /*static int LireCodePostalValide()
     {
         string? saisie;
         do
@@ -401,7 +401,29 @@ public class Program
             Console.WriteLine("❌ Code postal invalide. Réessaye.");
         }
         while (true);
+    }*/
+    
+    static int LireCodePostalValide()
+    {
+        string? saisie;
+        do
+        {
+            Console.Write("Code postal (5 chiffres, uniquement Paris) : ");
+            saisie = Console.ReadLine();
+
+            if (!string.IsNullOrWhiteSpace(saisie) &&
+                saisie.Length == 5 &&
+                saisie.All(char.IsDigit) &&
+                saisie.StartsWith("75"))
+            {
+                return int.Parse(saisie);
+            }
+
+            Console.WriteLine("❌ Code postal invalide. Seuls les codes commençant par 75 (Paris) sont acceptés. Réessaye.");
+        }
+        while (true);
     }
+
     static string LireMotDePasseValide()
     {
         string? motDePasse;
@@ -423,6 +445,7 @@ public class Program
         }
         while (true);
     }
+    
     static string LireEmailValide()
     {
         string? email;
