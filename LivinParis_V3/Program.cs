@@ -1293,6 +1293,7 @@ public class Program
         // Saisie de la date de début
         while (true)
         {
+            Console.WriteLine("=== Statistiques sur une période choisie ===");
             Console.Write("\nVeuillez entrer la date de début (yyyy-MM-dd) : ");
             string? dateDebutStr = Console.ReadLine();
             if (DateTime.TryParse(dateDebutStr, out dateDebut))
